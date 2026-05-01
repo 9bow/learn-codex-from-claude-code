@@ -1,0 +1,109 @@
+---
+/**
+ * Visualizes the Claude Code → Codex migration flow as a horizontal SVG diagram.
+ */
+---
+<figure class="migration-flow">
+  <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Claude Code에서 Codex로의 마이그레이션 흐름">
+    <defs>
+      <linearGradient id="grad-claude" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f59e0b" />
+        <stop offset="100%" stop-color="#d97706" />
+      </linearGradient>
+      <linearGradient id="grad-codex" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#10a37f" />
+        <stop offset="100%" stop-color="#059669" />
+      </linearGradient>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
+      </marker>
+    </defs>
+
+    <!-- Claude Code side -->
+    <g transform="translate(20,20)">
+      <rect width="240" height="280" rx="14" fill="url(#grad-claude)" opacity="0.16" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="120" y="32" text-anchor="middle" font-family="system-ui" font-size="18" font-weight="700" fill="#f59e0b">🟠 Claude Code</text>
+      <g font-family="ui-monospace, monospace" font-size="12" fill="#e2e8f0">
+        <rect x="16" y="56" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="78">CLAUDE.md</text>
+        <rect x="16" y="100" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="122">.claude/settings.json</text>
+        <rect x="16" y="144" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="166">.claude/skills/</text>
+        <rect x="16" y="188" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="210">.claude/agents/</text>
+        <rect x="16" y="232" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="254">claude /resume</text>
+      </g>
+    </g>
+
+    <!-- Arrows -->
+    <g stroke="#94a3b8" stroke-width="2" fill="none">
+      <line x1="270" y1="92" x2="370" y2="92" marker-end="url(#arrow)"/>
+      <line x1="270" y1="136" x2="370" y2="136" marker-end="url(#arrow)"/>
+      <line x1="270" y1="180" x2="370" y2="180" marker-end="url(#arrow)"/>
+      <line x1="270" y1="224" x2="370" y2="224" marker-end="url(#arrow)"/>
+      <line x1="270" y1="268" x2="370" y2="268" marker-end="url(#arrow)"/>
+    </g>
+
+    <!-- Codex side -->
+    <g transform="translate(380,20)">
+      <rect width="240" height="280" rx="14" fill="url(#grad-codex)" opacity="0.16" stroke="#10a37f" stroke-width="1.5"/>
+      <text x="120" y="32" text-anchor="middle" font-family="system-ui" font-size="18" font-weight="700" fill="#10a37f">🟢 Codex</text>
+      <g font-family="ui-monospace, monospace" font-size="12" fill="#e2e8f0">
+        <rect x="16" y="56" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="78">AGENTS.md</text>
+        <rect x="16" y="100" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="122">~/.codex/config.toml</text>
+        <rect x="16" y="144" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="166">.agents/skills/</text>
+        <rect x="16" y="188" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="210">.codex/agents/*.toml</text>
+        <rect x="16" y="232" width="208" height="34" rx="6" fill="#1e293b"/>
+        <text x="28" y="254">codex resume</text>
+      </g>
+    </g>
+
+    <!-- Notes -->
+    <g transform="translate(640,20)" font-family="system-ui" font-size="11" fill="#cbd5e1">
+      <rect width="220" height="280" rx="14" fill="#0f172a" stroke="#334155"/>
+      <text x="14" y="28" font-weight="700" fill="#fbbf24">변환 시 주의</text>
+      <text x="14" y="56">• 단순 이름 변경이 아님</text>
+      <text x="14" y="76">• JSON → TOML 형식 변환</text>
+      <text x="14" y="96">• Skills 경로는 .agents/skills/</text>
+      <text x="14" y="116">  (NOT .codex/skills/)</text>
+      <text x="14" y="140">• frontmatter 필드 대폭 축소</text>
+      <text x="14" y="160">• UI/정책 → openai.yaml 분리</text>
+      <text x="14" y="184">• Permissions → Approval +</text>
+      <text x="14" y="200">  Sandbox 두 축으로 분해</text>
+      <text x="14" y="224">• Hooks: features.codex_hooks</text>
+      <text x="14" y="240">  활성화 게이트 필요</text>
+      <text x="14" y="264">• 자세한 변환 절차는</text>
+      <text x="14" y="280">  04, 05, 06 섹션 참조</text>
+    </g>
+  </svg>
+  <figcaption>Claude Code의 핵심 자산을 Codex 생태계에 매핑하는 흐름. 모든 변환에는 형식·경로·필드 차이가 동반됩니다.</figcaption>
+</figure>
+
+<style>
+.migration-flow {
+  margin: 1.25rem 0;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--sl-color-gray-7, #1e293b);
+}
+.migration-flow svg {
+  width: 100%;
+  height: auto;
+  max-width: 880px;
+  display: block;
+  margin: 0 auto;
+}
+.migration-flow figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sl-color-gray-3, #94a3b8);
+  text-align: center;
+  line-height: 1.5;
+}
+</style>

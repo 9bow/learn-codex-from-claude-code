@@ -1,0 +1,156 @@
+---
+title: settings.json에서 config.toml로
+description: Claude Code의 JSON 설정 파일을 Codex의 TOML 형식으로 변환하는 방법과 주요 키 매핑을 설명합니다.
+sidebar:
+  order: 1
+learning_objectives:
+  - "settings.json의 주요 키를 config.toml로 변환할 수 있다"
+  - "TOML 문법의 기본 구조를 이해하고 설정 파일을 직접 작성할 수 있다"
+prerequisites:
+  - "Claude Code settings.json 사용 경험"
+estimated_minutes: 30
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Claude Code는 `~/.claude/settings.json`을 사용했습니다. Codex는 같은 역할을 `~/.codex/config.toml`이 담당합니다. 포맷이 JSON에서 TOML로 바뀌었고, 일부 키 이름도 달라졌습니다.
+
+## 파일 위치 비교
+
+<Compare>
+  <Fragment slot="left">
+  - 글로벌: `~/.claude/settings.json`
+  - 프로젝트: `.claude/settings.json`
+  - 로컬(git 제외): `.claude/settings.local.json`
+
+  </Fragment>
+  <Fragment slot="right">
+  - 글로벌: `~/.codex/config.toml`
+  - 프로젝트: `.codex/config.toml` (trusted 시 로드)
+  - 로컬 오버라이드: 별도 파일 없음, 프로파일 활용
+
+  </Fragment>
+</Compare>
+
+## 주요 키 매핑 표
+
+| 항목 | settings.json (Claude) | config.toml (Codex) |
+|------|------------------------|---------------------|
+| 기본 모델 | `"model": "claude-sonnet-4-6"` | `model = "gpt-5.4"` |
+| 추론 강도 | (effort 슬래시 커맨드) | `model_reasoning_effort = "medium"` |
+| 환경 변수 | `"env": {"KEY": "value"}` | `[env]` 섹션 |
+| 승인 정책 | `"permissions"` 블록 | `approval_policy = "on-request"` |
+| 샌드박스 | (없음, hooks로 제한) | `sandbox_mode = "workspace-write"` |
+| MCP 서버 | `mcpServers` (`~/.claude.json`) | `[mcp_servers.<id>]` (config.toml 내) |
+| 히스토리 저장 | 자동 | `history.persistence = "save-all"` |
+
+## 변환 예시
+
+### Claude Code settings.json (기존)
+
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "env": {
+    "NODE_ENV": "development",
+    "ANTHROPIC_API_KEY": "sk-ant-..."
+  },
+  "permissions": {
+    "allow": ["Bash(npm run *)", "Read(./src/**)"],
+    "deny": ["Bash(curl *)"]
+  }
+}
+```
+
+### Codex config.toml (변환 후)
+
+```toml
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[env]
+NODE_ENV = "development"
+OPENAI_API_KEY = "sk-proj-..."
+
+[history]
+persistence = "save-all"
+max_bytes = 104857600  # 100 MiB
+```
+
+:::note[permissions → approval_policy + sandbox_mode]
+Claude Code의 `permissions` 블록은 Codex에서 `approval_policy`(승인 정책)와 `sandbox_mode`(샌드박스 수준)로 나뉩니다. 세부 규칙 매핑은 [04-03 챕터](/learn-codex-from-claude-code/04-config-migration/04-03-permissions-to-approval-sandbox/)에서 다룹니다.
+:::
+
+## TOML 문법 기초
+
+JSON에 익숙하다면 TOML의 주요 차이를 확인하세요.
+
+```toml
+# 주석은 # 사용 (JSON은 주석 불가)
+
+# 문자열
+model = "gpt-5.4"
+
+# 불리언
+features.multi_agent = true
+
+# 정수
+agents.max_threads = 6
+
+# 섹션 헤더 (JSON의 중첩 객체)
+[env]
+KEY = "value"
+
+# 배열 (인라인)
+tags = ["dev", "local"]
+
+# 배열 of 테이블
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+```
+
+<ConceptCard title="TOML vs JSON 선택 이유">
+TOML은 주석을 지원하고 계층 구조가 명확하여 설정 파일에 적합합니다. Codex가 TOML을 채택한 것은 Rust 생태계의 관행(Cargo.toml 등)과도 맞닿아 있습니다.
+</ConceptCard>
+
+## MCP 서버 설정 이전
+
+Claude Code는 `~/.claude.json`의 `mcpServers` 키를 사용했습니다.
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}
+```
+
+Codex는 `config.toml` 안에 직접 정의합니다.
+
+```toml
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+enabled = true
+```
+
+## 핵심 정리
+
+- Claude Code의 `settings.json`은 Codex의 `config.toml`로 대응됩니다
+- 포맷이 JSON에서 TOML로 변경되어 주석 작성이 가능해졌습니다
+- `model`, `env` 키는 거의 동일하게 이전할 수 있으며 `permissions`는 `approval_policy` + `sandbox_mode`로 분리됩니다
+- MCP 서버 정의가 별도 파일에서 `config.toml` 내부로 통합되었습니다
+- `history.persistence`, `history.max_bytes`로 히스토리 저장 방식을 제어할 수 있습니다

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question": "Codex Desktop App의 주요 역할을 한 문장으로 설명한 것은?",
+    "options": [
+      "단일 AI 대화를 위한 채팅 인터페이스입니다.",
+      "멀티 에이전트를 동시에 관리하는 명령 센터(command center)입니다.",
+      "코드 편집기 기능을 내장한 통합 IDE입니다.",
+      "Codex Cloud 작업만 모니터링하는 대시보드입니다."
+    ],
+    "answer": 1,
+    "explanation": "Codex Desktop App은 멀티 에이전트를 동시에 관리하는 '명령 센터(command center)'입니다. 여러 에이전트를 병렬로 실행하고 관리할 수 있습니다."
+  },
+  {
+    "id": "q2",
+    "question": "Codex Desktop App에서 워크트리(worktree)를 사용하는 이유는?",
+    "options": [
+      "더 빠른 git 커밋을 위해 사용합니다.",
+      "각 에이전트가 격리된 코드 복사본에서 작업하여 충돌 없이 로컬 git에 영향을 주지 않습니다.",
+      "원격 저장소와 자동 동기화를 위해 사용합니다.",
+      "코드 히스토리를 영구 보존하기 위해 사용합니다."
+    ],
+    "answer": 1,
+    "explanation": "워크트리 기본 지원으로 각 에이전트가 격리된 코드 복사본에서 작업합니다. 에이전트 간 충돌이 없으며 로컬 git 저장소에 직접 영향을 주지 않습니다."
+  },
+  {
+    "id": "q3",
+    "question": "Codex Desktop App의 Auto Tasks 기능으로 할 수 없는 것은?",
+    "options": [
+      "이슈 자동 분류",
+      "CI 실패 요약",
+      "일일 릴리스 브리프 생성",
+      "실시간 코드 자동 완성"
+    ],
+    "answer": 3,
+    "explanation": "Auto Tasks는 스케줄 기반 백그라운드 자동 작업으로, 이슈 분류, CI 실패 요약, 일일 릴리스 브리프 등을 처리합니다. 실시간 코드 자동 완성은 IDE 확장의 기능입니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex Desktop App과 CLI/IDE 확장 간의 설정 동기화 방식은?",
+    "options": [
+      "클라우드 서버를 통해 실시간 동기화됩니다.",
+      "CLI/IDE 확장의 세션과 설정(~/.codex/config.toml)을 그대로 공유합니다.",
+      "Desktop App 전용 별도 설정 파일을 사용합니다.",
+      "수동으로 내보내기/가져오기를 해야 합니다."
+    ],
+    "answer": 1,
+    "explanation": "Codex Desktop App은 CLI/IDE 확장의 세션과 설정(~/.codex/config.toml)을 그대로 활용합니다. 별도 동기화 없이 동일한 설정 파일을 공유합니다."
+  },
+  {
+    "id": "q5",
+    "question": "Codex Desktop App이 macOS에 이어 Windows를 지원하기 시작한 날짜는?",
+    "options": [
+      "2025년 12월 1일",
+      "2026년 1월 15일",
+      "2026년 3월 4일",
+      "2026년 4월 1일"
+    ],
+    "answer": 2,
+    "explanation": "Codex Desktop App은 macOS 출시 후 2026년 3월 4일에 Windows로 확장되었습니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex Desktop App에서 제공하는 코드 검토 기능은?",
+    "options": [
+      "자동 코드 리뷰만 제공합니다.",
+      "diff 검토, 코멘트 작성, 에디터 즉시 열기를 지원합니다.",
+      "GitHub PR 인터페이스와 동일한 방식만 지원합니다.",
+      "코드 검토 기능은 없고 에이전트 관리만 가능합니다."
+    ],
+    "answer": 1,
+    "explanation": "Desktop App에서는 diff 검토, 코멘트 작성, 에디터 즉시 열기 기능을 제공합니다. 에이전트가 생성한 변경사항을 직접 검토하고 피드백을 줄 수 있습니다."
+  },
+  {
+    "id": "q7",
+    "question": "Codex Desktop App에서 스킬을 관리하는 방법은?",
+    "options": [
+      "CLI 명령으로만 스킬을 관리합니다.",
+      "스킬 생성/관리 전용 UI가 내장되어 있습니다.",
+      "GitHub 저장소를 통해서만 스킬을 설치합니다.",
+      "SKILL.md를 직접 편집해야만 합니다."
+    ],
+    "answer": 1,
+    "explanation": "Codex Desktop App에는 스킬 생성/관리 전용 UI가 포함되어 있습니다. CLI를 사용하지 않고도 GUI 환경에서 스킬을 관리할 수 있습니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex Desktop App의 프로젝트별 스레드 기능의 장점은?",
+    "options": [
+      "각 스레드가 별도 API 키를 사용합니다.",
+      "컨텍스트 유실 없이 프로젝트 간 작업 전환이 가능합니다.",
+      "스레드당 무제한 토큰을 사용할 수 있습니다.",
+      "스레드가 자동으로 git 브랜치를 생성합니다."
+    ],
+    "answer": 1,
+    "explanation": "프로젝트별 스레드를 통해 컨텍스트 유실 없이 여러 프로젝트 간 작업 전환이 가능합니다. 각 프로젝트의 대화 맥락이 독립적으로 보존됩니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex Desktop App에서 원격 앱 서버와 연결하는 CLI 명령 조합은?",
+    "options": [
+      "codex server --start와 codex --connect",
+      "codex app-server --listen ws://...와 codex --remote ws://...",
+      "codex daemon --port 8080와 codex --host localhost:8080",
+      "codex serve와 codex client --url"
+    ],
+    "answer": 1,
+    "explanation": "codex app-server --listen ws://...로 원격 앱 서버를 시작하고, codex --remote ws://...로 클라이언트를 연결합니다. 원격 환경에서 Codex를 사용할 때 유용합니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex Subagents의 최대 스레드 수(max_threads) 기본값은?",
+    "options": [
+      "3",
+      "4",
+      "6",
+      "10"
+    ],
+    "answer": 2,
+    "explanation": "config.toml의 [agents] 섹션에서 max_threads = 6이 기본값입니다. 또한 max_depth = 1, job_max_runtime_seconds = 1800으로 제한됩니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex에서 새 Subagent를 생성하는 도구 함수는?",
+    "options": [
+      "create_agent",
+      "spawn_agent",
+      "launch_agent",
+      "start_agent"
+    ],
+    "answer": 1,
+    "explanation": "Subagent 관련 도구 함수는 spawn_agent(생성), send_input(입력), resume_agent(재개), wait_agent(대기), close_agent(종료)입니다. spawn_agent로 새 에이전트를 생성합니다."
+  }
+]

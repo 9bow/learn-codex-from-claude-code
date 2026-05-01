@@ -1,0 +1,142 @@
+---
+title: 워크트리와 멀티 에이전트
+description: Desktop App의 워크트리 기본 지원으로 여러 에이전트가 동일 리포에서 충돌 없이 작업하는 방법을 익힙니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "Codex Desktop App의 워크트리 격리가 멀티 에이전트 충돌을 막는 원리를 설명할 수 있다"
+  - "CLI git-worktree 와 Desktop App 워크트리의 관계를 설명할 수 있다"
+prerequisites:
+  - "08-01 Desktop App 명령 센터 챕터 읽기"
+  - "git worktree 기본 개념"
+estimated_minutes: 25
+references:
+  - title: "Introducing the Codex App"
+    url: "https://openai.com/index/introducing-the-codex-app/"
+    accessed: "2026-05-01"
+  - title: "Codex Subagents"
+    url: "https://developers.openai.com/codex/subagents"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 멀티 에이전트의 충돌 문제
+
+여러 에이전트가 같은 파일을 동시에 수정하면 어떻게 될까요? 에이전트 A가 `auth/session.ts` 를 리팩터링하는 동안 에이전트 B가 같은 파일에 새 기능을 추가하면 두 변경이 충돌합니다.
+
+일반적인 git 워크플로에서는 브랜치를 나눠 작업한 뒤 머지 시 충돌을 해결합니다. 하지만 에이전트가 같은 워킹 트리를 공유하면 브랜치를 만들기도 전에 파일 수준 충돌이 발생합니다.
+
+Codex Desktop App은 **워크트리 기본 지원** 으로 이 문제를 해결합니다. 각 에이전트에게 격리된 코드 복사본을 제공합니다.
+
+## 워크트리 작동 원리
+
+Codex Desktop App은 내부적으로 `git worktree` 를 활용합니다. 에이전트를 새로 시작할 때 Desktop App이 자동으로 새 worktree를 생성하고 그 안에서 에이전트를 실행합니다.
+
+```
+.git/
+  worktrees/
+    codex-agent-a/   ← 에이전트 A 전용 복사본
+    codex-agent-b/   ← 에이전트 B 전용 복사본
+    codex-agent-c/   ← 에이전트 C 전용 복사본
+```
+
+각 에이전트는 자신만의 워킹 트리를 가지므로 서로의 변경에 영향을 받지 않습니다.
+
+<Compare>
+  <Fragment slot="left">
+  **워크트리 없는 멀티 에이전트**
+  - 모든 에이전트가 같은 파일 공유
+  - 동시 수정 시 파일 충돌 발생
+  - 한 에이전트의 실수가 전체 영향
+  - 롤백 시 모든 변경 영향
+
+  </Fragment>
+  <Fragment slot="right">
+  **Desktop App 워크트리 격리**
+  - 에이전트마다 독립 코드 복사본
+  - 동시 수정 충돌 없음
+  - 로컬 git 워킹 트리에 영향 없음
+  - 에이전트 단위로 독립 rollback
+
+  </Fragment>
+</Compare>
+
+## 로컬 git에 영향 없음
+
+Desktop App에서 에이전트가 작업하는 동안 여러분의 로컬 워킹 트리는 그대로 유지됩니다. 에이전트가 파일을 수정해도 `git status` 에 아무것도 나타나지 않습니다.
+
+에이전트 작업이 완료된 후 diff를 검토하고 원하는 변경만 머지하거나 적용할 수 있습니다.
+
+```bash
+# 로컬 워킹 트리는 깨끗한 상태
+git status
+# → nothing to commit, working tree clean
+
+# Desktop App에서 에이전트 작업 완료 후
+# diff 검토 → 승인 → 로컬에 적용
+```
+
+:::tip[팁]
+Desktop App의 diff 검토 화면에서 변경 사항을 확인하고 "에디터에서 열기" 버튼으로 VS Code나 원하는 에디터에서 바로 열 수 있습니다. 검토 후 코멘트를 달고 부분 적용도 가능합니다.
+:::
+
+## CLI git-worktree와의 관계
+
+Desktop App의 워크트리 기능은 표준 `git worktree` 위에서 동작합니다. CLI에서 직접 worktree를 관리할 수도 있습니다.
+
+```bash
+# 수동으로 worktree 생성
+git worktree add ../feature-branch feature/new-auth
+
+# Codex CLI를 특정 worktree에서 실행
+cd ../feature-branch
+codex "인증 모듈을 OAuth 2.0으로 업그레이드해 줘"
+```
+
+Desktop App은 이 과정을 자동화합니다. 에이전트를 시작할 때 worktree 생성, 작업 완료 후 정리까지 모두 자동으로 처리합니다.
+
+## Claude Code EnterWorktree와 비교
+
+Claude Code에는 `EnterWorktree` 도구가 있어 스크립트에서 워크트리를 프로그래밍 방식으로 관리할 수 있었습니다.
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code EnterWorktree**
+  - `EnterWorktree` 도구 명시 호출
+  - 스크립트·Skills에서 제어
+  - 워크트리 진입/탈출 수동 관리
+  - `.claude/` 설정 파일 활용
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex Desktop App 워크트리**
+  - 에이전트 시작 시 자동 생성
+  - UI에서 워크트리별 에이전트 관리
+  - 로컬 워킹 트리와 완전 분리
+  - 설정 없이 기본 지원
+
+  </Fragment>
+</Compare>
+
+<ConceptCard title="동일 리포 멀티 에이전트 시나리오">
+
+실제 활용 예시입니다.
+
+1. **에이전트 A**: `feature/payments` 브랜치에서 결제 모듈 구현
+2. **에이전트 B**: `refactor/auth` 브랜치에서 인증 리팩터링
+3. **에이전트 C**: `docs/api` 브랜치에서 API 문서 업데이트
+
+세 에이전트가 같은 리포를 대상으로 동시에 작업하지만, 각자 격리된 워크트리에서 실행되므로 충돌이 없습니다. Desktop App 화면에서 세 에이전트의 진행 상황을 한눈에 확인하고 diff를 순서대로 검토할 수 있습니다.
+
+</ConceptCard>
+
+## 핵심 정리
+
+- Desktop App은 **워크트리 기본 지원** 으로 에이전트마다 격리된 코드 복사본을 제공합니다
+- 에이전트가 작업하는 동안 **로컬 git 워킹 트리는 영향 받지 않습니다**
+- 내부적으로 표준 `git worktree` 를 활용하며, CLI에서 수동으로도 관리할 수 있습니다
+- Claude Code의 `EnterWorktree` 도구와 달리 Desktop App은 **자동으로 워크트리를 생성·정리** 합니다
+- 작업 완료 후 **시각적 diff 검토** 화면에서 코멘트를 달고 에디터에서 바로 열 수 있습니다
+- 동일 리포에서 여러 에이전트를 동시에 실행해 **병렬 개발 속도** 를 높일 수 있습니다

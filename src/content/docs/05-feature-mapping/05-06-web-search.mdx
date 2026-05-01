@@ -1,0 +1,130 @@
+---
+title: Web Search 차이
+description: Claude Code의 WebFetch/WebSearch 도구와 Codex의 캐시/라이브 검색 모드를 비교합니다.
+sidebar:
+  order: 6
+learning_objectives:
+  - "Codex의 cached/live/disabled 웹 검색 모드 차이를 설명할 수 있다"
+  - "프롬프트 인젝션 위험을 이해하고 적절한 검색 모드를 선택할 수 있다"
+prerequisites:
+  - "Claude Code WebFetch/WebSearch 사용 경험"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+## Claude Code의 웹 접근 방식
+
+Claude Code는 두 가지 MCP 도구를 통해 웹에 접근합니다.
+
+| 도구 | 설명 |
+|------|------|
+| `WebFetch` | 특정 URL의 내용을 직접 가져옴 |
+| `WebSearch` | 검색 쿼리로 웹을 탐색 |
+
+이 도구들은 MCP 서버나 훅 설정에 따라 활성화되며, 실시간으로 웹 콘텐츠에 접근합니다. 권한 정책에서 허용된 경우에만 사용 가능합니다.
+
+## Codex의 웹 검색 모드
+
+Codex는 웹 검색을 1st-party 기능으로 내장하고 있으며, 세 가지 모드로 동작합니다.
+
+| 모드 | 설정 | 설명 |
+|------|------|------|
+| `cached` | 기본값 | 사전 인덱싱된 콘텐츠 사용, 프롬프트 인젝션 위험 감소 |
+| `live` | `--search` 또는 `web_search = "live"` | 실시간 웹 검색, 최신 정보 접근 |
+| `disabled` | `web_search = "disabled"` | 웹 검색 완전 비활성화 |
+
+### cached 모드 (기본값)
+
+별도 설정 없이 Codex를 실행하면 cached 모드로 동작합니다. OpenAI가 사전에 인덱싱한 웹 콘텐츠를 기반으로 응답하므로, 실시간 최신 정보가 필요하지 않은 일반적인 질문에 적합합니다.
+
+### live 모드
+
+실시간 웹 검색이 필요할 때는 `--search` 플래그 또는 설정 파일로 활성화합니다.
+
+```bash
+# CLI 플래그
+codex --search "React 19 최신 변경 사항 알려줘"
+
+# 또는 영구 설정
+```
+
+```toml
+# ~/.codex/config.toml
+web_search = "live"
+```
+
+### disabled 모드
+
+네트워크 접근을 완전히 차단해야 하는 환경(폐쇄망, 보안 감사 등)에서 사용합니다.
+
+```toml
+web_search = "disabled"
+```
+
+## 나란히 비교
+
+<Compare>
+  <Fragment slot="left">
+  - 도구: `WebFetch`, `WebSearch` (MCP 기반)
+  - 방식: 실시간 직접 접근
+  - 활성화: MCP 서버 설정 또는 권한 정책
+  - 프롬프트 인젝션: 실시간 콘텐츠이므로 주의 필요
+  - 설정 위치: `.claude/settings.json` 권한 규칙
+
+  </Fragment>
+  <Fragment slot="right">
+  - 도구: 1st-party 내장 (MCP 불필요)
+  - 방식: cached(기본) / live / disabled
+  - 활성화: 기본 활성화, 모드 선택만 필요
+  - 프롬프트 인젝션: cached 모드로 위험 감소
+  - 설정 위치: `config.toml` `web_search` 키
+
+  </Fragment>
+</Compare>
+
+## 프롬프트 인젝션 위험
+
+웹 검색을 live 모드로 사용할 때는 프롬프트 인젝션 공격에 주의해야 합니다. 악의적으로 조작된 웹 페이지가 AI 에이전트의 동작을 변조하려 시도할 수 있습니다.
+
+:::caution[주의]
+`--yolo` (또는 `--dangerously-bypass-approvals-and-sandbox`) 플래그를 사용하면 웹 검색이 자동으로 **live 모드** 로 전환됩니다. `--yolo` 모드에서는 모든 승인과 샌드박스가 우회되므로, 신뢰할 수 없는 웹 콘텐츠가 에이전트 행동에 영향을 줄 위험이 더 큽니다.
+:::
+
+프롬프트 인젝션 위험을 줄이는 방법은 다음과 같습니다.
+
+1. **cached 모드 유지**: 가능하면 기본값인 cached 모드를 사용합니다.
+2. **신뢰할 수 있는 도메인만 참조**: live 모드 사용 시 쿼리를 구체적으로 작성합니다.
+3. **`--yolo` 최소화**: 꼭 필요한 경우에만, 신뢰된 환경에서 사용합니다.
+4. **샌드박스 유지**: `sandbox_mode = "read-only"` 와 함께 live 검색을 사용하면 피해 범위를 제한할 수 있습니다.
+
+<ConceptCard title="cached vs live 선택 기준">
+어떤 모드를 선택할지 간단한 기준이 있습니다.
+
+- **cached (기본)**: 공식 문서 참조, 일반적인 코딩 질문, 알려진 라이브러리 API
+- **live**: 최신 뉴스, 방금 릴리스된 패키지 버전, 실시간 가격/상태 정보
+- **disabled**: CI/CD 환경, 폐쇄망, 재현 가능한 결과가 필요한 테스트
+</ConceptCard>
+
+:::tip[팁]
+프로젝트 단위로 웹 검색 모드를 고정하려면 `.codex/config.toml` 에 `web_search = "cached"` 를 명시적으로 추가하세요. 팀원이 실수로 live 모드를 활성화하는 것을 방지할 수 있습니다.
+:::
+
+## 핵심 정리
+
+- Claude Code는 `WebFetch`/`WebSearch` MCP 도구로, Codex는 1st-party 내장 기능으로 웹에 접근합니다
+- Codex의 기본 모드는 **cached** 로, 사전 인덱싱된 콘텐츠를 사용해 프롬프트 인젝션 위험을 줄입니다
+- `--search` 플래그 또는 `web_search = "live"` 설정으로 실시간 검색을 활성화할 수 있습니다
+- `--yolo` 플래그 사용 시 웹 검색이 자동으로 live 모드로 전환되므로 주의가 필요합니다
+- 폐쇄망 또는 재현 가능한 환경이 필요한 경우 `web_search = "disabled"` 로 검색을 비활성화합니다
+
+<Quiz client:load section="05" />

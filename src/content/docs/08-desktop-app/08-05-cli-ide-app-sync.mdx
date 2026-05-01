@@ -1,0 +1,172 @@
+---
+title: CLI · IDE · Desktop App 동기화
+description: 세 가지 Codex 인터페이스가 설정과 세션을 공유하는 방법과 어디서든 작업을 이어받는 패턴을 익힙니다.
+sidebar:
+  order: 5
+learning_objectives:
+  - "CLI·IDE 확장·Desktop App이 config.toml과 세션을 공유하는 구조를 설명할 수 있다"
+  - "codex resume으로 인터페이스를 넘나들며 작업을 이어가는 패턴을 적용할 수 있다"
+prerequisites:
+  - "08-01 Desktop App 명령 센터 챕터 읽기"
+  - "04 설정 마이그레이션 섹션 챕터 읽기 (선택)"
+estimated_minutes: 20
+references:
+  - title: "Introducing the Codex App"
+    url: "https://openai.com/index/introducing-the-codex-app/"
+    accessed: "2026-05-01"
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+## 세 인터페이스의 공유 구조
+
+Codex의 세 가지 인터페이스(CLI, IDE 확장, Desktop App)는 같은 설정 파일과 세션 저장소를 공유합니다. 어느 인터페이스에서 작업을 시작해도 다른 인터페이스에서 그대로 이어받을 수 있습니다.
+
+```
+~/.codex/
+  config.toml        ← CLI / IDE 확장 / Desktop App 공유
+  sessions/          ← 모든 세션 기록 저장
+    <session-id>/
+      history.jsonl  ← 대화 기록
+  history.jsonl      ← 전역 히스토리
+  log/
+    codex-tui.log    ← TUI 로그
+```
+
+:::note[참고]
+`CODEX_HOME` 환경 변수로 홈 디렉토리를 변경할 수 있습니다. 여러 설정 프로필을 디렉토리로 분리할 때 유용합니다.
+:::
+
+## config.toml 공유
+
+`~/.codex/config.toml` 은 세 인터페이스 모두 읽습니다. CLI에서 모델을 바꾸면 IDE 확장에도 즉시 반영됩니다.
+
+```toml
+# ~/.codex/config.toml
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+[agents]
+max_threads = 6
+
+[[mcp_servers.github]]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+```
+
+프로젝트 전용 설정은 `.codex/config.toml` 에 저장합니다. 이 파일은 신뢰된(trusted) 프로젝트에서만 로드됩니다.
+
+```toml
+# .codex/config.toml (프로젝트 전용)
+model = "gpt-5.3-codex"
+sandbox_mode = "read-only"
+```
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code 설정 공유**
+  - `~/.claude/settings.json` 글로벌
+  - `.claude/settings.json` 프로젝트
+  - `.claude/settings.local.json` 로컬 오버라이드
+  - IDE 확장이 CLI 설정 일부 참조
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex 설정 공유**
+  - `~/.codex/config.toml` 글로벌 (CLI/IDE/App 공유)
+  - `.codex/config.toml` 프로젝트 (trusted 시 로드)
+  - Profiles: `[profiles.<name>]` (CLI 전용, Experimental)
+  - Desktop App도 글로벌 config 읽음
+
+  </Fragment>
+</Compare>
+
+## 세션 공유와 history.jsonl
+
+모든 세션은 `~/.codex/sessions/` 에 저장됩니다. 각 세션 디렉토리 안의 `history.jsonl` 파일에 대화 기록이 저장됩니다.
+
+```bash
+# 세션 목록 확인
+ls ~/.codex/sessions/
+
+# 특정 세션의 기록 확인
+cat ~/.codex/sessions/<session-id>/history.jsonl | jq '.role, .content'
+```
+
+히스토리 저장 방식은 config.toml에서 조정합니다.
+
+```toml
+[history]
+persistence = "save-all"   # "none" 으로 저장 비활성화
+max_bytes = 104857600      # 100MB 제한
+```
+
+## codex resume으로 어디서든 이어받기
+
+`codex resume` 명령은 인터페이스와 무관하게 세션을 이어받습니다.
+
+```bash
+# 마지막 세션 이어받기
+codex resume --last
+
+# 모든 세션 목록에서 선택
+codex resume --all
+
+# 특정 세션 ID로 이어받기
+codex resume abc123def456
+```
+
+| 시나리오 | 패턴 |
+|----------|------|
+| Desktop App에서 시작 → CLI에서 이어받기 | `codex resume --last` |
+| CLI에서 시작 → Desktop App에서 스레드로 열기 | Desktop App에서 세션 목록 → 선택 |
+| IDE에서 시작 → 서버 CLI에서 이어받기 | `codex resume <SESSION_ID>` |
+| 중단된 작업 다음 날 재개 | `codex resume --all` 로 목록 확인 |
+
+:::tip[팁]
+`codex resume --last` 는 가장 최근 세션을 즉시 이어받습니다. 매일 아침 어제 작업을 이어받을 때 가장 빠른 방법입니다.
+:::
+
+<ConceptCard title="Profiles로 인터페이스별 설정 분리 (Experimental)">
+
+CLI에서 `--profile` 플래그로 다른 설정 프로필을 사용할 수 있습니다. 다만 2026-05 기준 Experimental 상태이며 IDE 확장은 미지원입니다.
+
+```toml
+# ~/.codex/config.toml
+[profiles.ci]
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[profiles.review]
+model = "gpt-5.4"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+```
+
+```bash
+# CI 프로필로 실행
+codex --profile ci exec "린트 수정해"
+
+# 리뷰 프로필로 실행
+codex -p review "PR 변경 사항 검토해 줘"
+```
+
+</ConceptCard>
+
+## 핵심 정리
+
+- **`~/.codex/config.toml`** 은 CLI·IDE 확장·Desktop App이 모두 공유합니다
+- **`~/.codex/sessions/`** 의 `history.jsonl` 에 모든 세션 기록이 저장됩니다
+- **`codex resume`** 으로 어느 인터페이스에서 시작한 세션이든 이어받을 수 있습니다
+- 프로젝트 전용 설정은 `.codex/config.toml` 에 저장하며, 신뢰된 프로젝트에서만 로드됩니다
+- **Profiles** 기능으로 CLI에서 인터페이스별 설정을 분리할 수 있습니다 (Experimental, IDE 미지원)
+- `CODEX_HOME` 환경 변수로 설정 디렉토리를 변경해 복수 프로필을 관리할 수 있습니다
+
+<Quiz client:load section="08" />

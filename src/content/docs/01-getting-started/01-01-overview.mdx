@@ -1,0 +1,93 @@
+---
+title: 이 가이드가 다루는 것
+description: 가이드의 대상 독자, 전제 조건, 구성, 그리고 작성 시점을 안내합니다.
+sidebar:
+  order: 1
+learning_objectives:
+  - "이 가이드가 다루는 범위와 목적을 설명할 수 있다"
+  - "가이드를 최대한 활용하기 위한 전제 조건을 확인할 수 있다"
+prerequisites:
+  - "Claude Code 기본 사용 경험"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Overview"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+  - title: "Claude Code Overview"
+    url: "https://docs.claude.com/en/docs/claude-code/overview"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 이 가이드는 누구를 위한 것인가
+
+이 가이드는 **Claude Code** 를 실무에서 사용해 본 개발자가 **OpenAI Codex** 로 전환하거나 병행 사용하고자 할 때 가장 빠르게 적응할 수 있도록 돕기 위해 작성되었습니다.
+
+다음에 해당하는 분께 적합합니다.
+
+- `claude` CLI를 터미널에서 일상적으로 사용하는 분
+- `CLAUDE.md`, hooks, subagents, skills 등 Claude Code의 고급 기능을 경험해 본 분
+- Codex로 전환을 검토 중이거나, 두 도구를 프로젝트별로 선택해 쓰고 싶은 분
+
+처음부터 Codex를 배우는 분, 또는 Claude Code를 전혀 모르는 분에게는 이 가이드보다 Codex 공식 문서를 먼저 읽는 것을 권장합니다.
+
+## 전제 조건
+
+| 항목 | 필요 수준 |
+|------|-----------|
+| Claude Code 사용 경험 | `claude` CLI 실행, 간단한 설정 변경 가능 수준 |
+| 터미널 사용 | bash / zsh 기본 명령어 |
+| Git | 기본 commit / branch 흐름 |
+| Node.js 또는 Python | 프로젝트별 설치 환경 보유 |
+
+Codex 계정(OpenAI 계정 또는 API 키)은 [03-install](/learn-codex-from-claude-code/03-install/) 섹션에서 안내합니다. 지금 당장 없어도 이 가이드를 읽는 데 문제없습니다.
+
+## 가이드 구성
+
+이 가이드는 총 11개 섹션으로 이루어져 있습니다.
+
+| 섹션 | 제목 | 핵심 내용 |
+|------|------|-----------|
+| 01 | 시작하기 | 가이드 소개, Codex 라인업, 진화 흐름, 첫인상, 마이그레이션 로드맵 |
+| 02 | 한눈에 보는 비교 | 철학 차이, 명령어/파일 대응 표, 1:1 매핑 가능/어려운 영역, UI 비교 |
+| 03 | 설치 | CLI, IDE 확장, Desktop App 설치 및 인증 |
+| 04 | 설정 마이그레이션 | `settings.json` → `config.toml`, CLAUDE.md → AGENTS.md 변환 |
+| 05 | 기능 매핑 | hooks, MCP, subagents, slash 커맨드 전환 |
+| 06 | Skills | Claude Code skills vs Agent Skills 표준 전환 |
+| 07 | 일상 워크플로 | 실제 작업 흐름 비교 및 전환 |
+| 08 | Desktop App | Desktop App 멀티 에이전트 활용법 |
+| 09 | 고급 | Codex Cloud, CI/CD, 원격 실행 |
+| 10 | 시나리오 | 실전 마이그레이션 예제 |
+| 11 | 트러블슈팅 | 흔한 오류와 해결 방법 |
+
+각 섹션은 독립적으로 읽을 수 있으나, 처음 접하는 분은 01 → 02 → 03 순서를 권장합니다.
+
+## 작성 시점 및 버전 기준
+
+:::caution[주의]
+이 가이드는 **2026년 5월 기준** 으로 작성되었습니다. Codex와 Claude Code는 빠르게 업데이트되는 제품이므로, 일부 내용이 현재 버전과 다를 수 있습니다. 항상 공식 문서를 병행해서 확인하세요.
+:::
+
+| 도구 | 기준 버전/시점 |
+|------|---------------|
+| Claude Code | 2026-05, `claude-sonnet-4-6`, `claude-opus-4-6` |
+| Codex CLI | 2026-05, Rust 기반 오픈소스 (`github.com/openai/codex`) |
+| Codex Desktop App | 2026-03 macOS 출시, 2026-03-04 Windows 확장 이후 |
+| 모델 | `gpt-5.5` (최신), `gpt-5.4`, `gpt-5.3-codex` 등 |
+
+<ConceptCard title="이 가이드에서 사용하는 표기 규칙">
+- `코드체` : 터미널 명령어, 파일명, 설정 키
+- **굵은 글씨** : 중요 개념 또는 용어 첫 등장
+- `:::tip`, `:::caution`, `:::note` : 팁, 주의사항, 참고
+- 표 : 두 도구의 대응 관계 정리
+- `<Compare>` 컴포넌트 : Claude Code와 Codex 나란히 비교
+</ConceptCard>
+
+## 핵심 정리
+
+- 이 가이드는 **Claude Code 경험자** 가 Codex로 전환하는 최단 경로를 제공합니다
+- 터미널, Git, 기본 프로그래밍 환경이 전제 조건입니다
+- 총 **11개 섹션** 으로 구성되며, 섹션별로 독립적으로 읽을 수 있습니다
+- 모든 내용은 **2026년 5월 기준** 이며, 공식 문서 병행 확인을 권장합니다
+- 빠른 전환을 원한다면 섹션 01 → 02 → 03 순서로 시작하세요

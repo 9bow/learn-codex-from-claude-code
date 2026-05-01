@@ -1,0 +1,57 @@
+---
+type Item = { date: string; title: string; description: string };
+type Props = { items: Item[] };
+const { items } = Astro.props;
+---
+<ol class="omc-timeline">
+  {items.map((it) => (
+    <li>
+      <div class="omc-timeline-dot" aria-hidden="true"></div>
+      <div class="omc-timeline-content">
+        <span class="omc-timeline-date">{it.date}</span>
+        <strong>{it.title}</strong>
+        <p>{it.description}</p>
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+.omc-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0;
+  border-left: 2px solid var(--sl-color-gray-5, #475569);
+}
+.omc-timeline li {
+  position: relative;
+  padding: 0.75rem 0 0.75rem 1.5rem;
+}
+.omc-timeline-dot {
+  position: absolute;
+  left: -7px;
+  top: 1rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10a37f, #059669);
+  box-shadow: 0 0 0 3px var(--sl-color-bg, #0f172a);
+}
+.omc-timeline-date {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: #10a37f;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  letter-spacing: 0.02em;
+}
+.omc-timeline-content strong {
+  font-size: 1rem;
+}
+.omc-timeline-content p {
+  margin: 0.25rem 0 0;
+  color: var(--sl-color-gray-3, #94a3b8);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+</style>

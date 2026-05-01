@@ -1,0 +1,122 @@
+---
+title: ChatGPT 인증 vs API 키 인증
+description: Codex의 두 가지 인증 방식과 모델별 지원 범위, 의사결정 기준을 설명합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "ChatGPT 인증과 API 키 인증의 차이를 설명할 수 있다"
+  - "사용 목적에 따라 적합한 인증 방식을 선택할 수 있다"
+prerequisites:
+  - "Codex CLI 설치 완료"
+estimated_minutes: 25
+references:
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+  - title: "Codex Models"
+    url: "https://developers.openai.com/codex/models"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Claude Code는 `ANTHROPIC_API_KEY` 환경 변수 하나로 인증이 끝났습니다. Codex는 **ChatGPT 계정 인증** 과 **API 키 인증** 두 가지 경로가 있으며, 어떤 인증을 사용하느냐에 따라 사용할 수 있는 모델과 기능이 달라집니다.
+
+## ChatGPT 인증
+
+ChatGPT 계정(Plus/Pro/Team/Enterprise)으로 로그인하는 방식입니다. CLI를 처음 실행하면 브라우저가 열리며 OAuth 흐름을 안내합니다.
+
+```bash
+codex
+# 브라우저에서 ChatGPT 계정으로 로그인 → 토큰 자동 저장
+```
+
+인증 토큰은 `~/.codex/` 디렉터리에 저장되며 이후 자동으로 사용됩니다.
+
+:::tip[ChatGPT 인증이 필요한 경우]
+`gpt-5.5` 모델과 **Codex Cloud** 기능(백그라운드 클라우드 작업, GitHub/Slack 통합)은 반드시 ChatGPT 인증이 필요합니다. API 키로는 접근할 수 없습니다.
+:::
+
+## API 키 인증
+
+OpenAI API 키를 환경 변수로 설정하는 방식입니다. Claude Code 사용자에게 익숙한 패턴입니다.
+
+```bash
+export OPENAI_API_KEY="sk-proj-..."
+codex
+```
+
+또는 `~/.codex/config.toml`에 영구 설정할 수 있습니다.
+
+```toml
+[env]
+OPENAI_API_KEY = "sk-proj-..."
+```
+
+:::caution[API 키의 제약]
+API 키는 CLI, SDK, IDE 확장에서만 사용 가능합니다. **Codex Cloud 기능은 API 키로 접근할 수 없습니다.** 팀 협업이나 GitHub 통합이 필요하다면 ChatGPT 인증을 사용하세요.
+:::
+
+## 모델별 인증 지원 범위
+
+| 모델 | ChatGPT 인증 | API 키 | 비고 |
+|------|:------------:|:------:|------|
+| `gpt-5.5` | ✅ | ❌ | ChatGPT 인증 전용 |
+| `gpt-5.4` | ✅ | ✅ | 권장 폴백, agentic 작업 |
+| `gpt-5.4-mini` | ✅ | ✅ | 빠르고 저렴, 서브에이전트용 |
+| `gpt-5.3-codex` | ✅ | ✅ | 코딩 특화 |
+| `gpt-5.3-codex-spark` | ✅ (Pro only) | ❌ | ChatGPT Pro 전용 |
+| `gpt-5.2` | ✅ | ✅ | 이전 세대 |
+
+<Compare>
+  <Fragment slot="left">
+  - 단일 인증: `ANTHROPIC_API_KEY`
+  - 모든 모델을 API 키로 사용 가능
+  - Claude Pro/Max/Team 플랜 구분
+
+  </Fragment>
+  <Fragment slot="right">
+  - 두 가지 인증: ChatGPT 계정 또는 API 키
+  - `gpt-5.5`, Codex Cloud는 ChatGPT 인증 필수
+  - 플랜에 따라 모델 접근 범위 상이
+
+  </Fragment>
+</Compare>
+
+## 기능별 인증 요구사항
+
+| 기능 | ChatGPT 인증 | API 키 |
+|------|:------------:|:------:|
+| CLI 기본 대화 | ✅ | ✅ |
+| IDE 확장 | ✅ | ✅ |
+| Desktop App | ✅ | ✅ |
+| Codex Cloud | ✅ | ❌ |
+| GitHub 통합 | ✅ | ❌ |
+| Slack 통합 | ✅ | ❌ |
+| `gpt-5.5` 사용 | ✅ | ❌ |
+
+## 의사결정 트리
+
+```
+개인 개발자, 로컬 작업 위주?
+├─ API 키 사용량을 직접 관리하고 싶다 → API 키 인증
+└─ ChatGPT Plus/Pro 구독 중 → ChatGPT 인증
+
+팀/조직 환경?
+├─ GitHub/Slack 통합 필요 → ChatGPT 인증 (필수)
+├─ Codex Cloud 백그라운드 작업 → ChatGPT 인증 (필수)
+└─ CI/CD 자동화, 토큰 기반 청구 → API 키 인증
+```
+
+<ConceptCard title="두 인증을 동시에 사용할 수 있나요?">
+한 번에 하나의 인증 방식만 활성화됩니다. ChatGPT 인증 토큰이 있으면 API 키보다 우선됩니다. API 키만 사용하려면 ChatGPT 인증 토큰을 삭제하거나 `~/.codex/` 디렉터리를 초기화하세요.
+</ConceptCard>
+
+## 핵심 정리
+
+- Codex는 **ChatGPT 계정 인증** 과 **API 키 인증** 두 가지 방식을 지원합니다
+- `gpt-5.5` 모델과 Codex Cloud 기능은 ChatGPT 인증만 지원합니다
+- API 키 인증은 CLI, SDK, IDE 확장에서만 사용 가능하며 Cloud 기능에는 접근할 수 없습니다
+- 팀 협업, GitHub/Slack 통합이 필요하다면 반드시 ChatGPT 인증을 사용해야 합니다
+- CI/CD 환경처럼 토큰 기반 청구가 필요한 경우는 API 키가 적합합니다

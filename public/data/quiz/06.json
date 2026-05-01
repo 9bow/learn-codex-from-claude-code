@@ -1,0 +1,146 @@
+[
+  {
+    "id": "q1",
+    "question": "Agent Skills 표준(agentskills.io)의 발원지는?",
+    "options": [
+      "OpenAI",
+      "Anthropic",
+      "Google",
+      "Microsoft"
+    ],
+    "answer": 1,
+    "explanation": "Agent Skills 표준(agentskills.io)은 Anthropic이 발원한 오픈 표준입니다. Codex, Claude Code 등 여러 AI 도구에서 호환되는 스킬 생태계를 목표로 합니다."
+  },
+  {
+    "id": "q2",
+    "question": "Codex에서 사용자 레벨 Skills 디렉토리의 올바른 경로는?",
+    "options": [
+      "$HOME/.codex/skills/",
+      "$HOME/.agents/skills/",
+      "$HOME/.openai/skills/",
+      "$HOME/.claude/skills/"
+    ],
+    "answer": 1,
+    "explanation": "사용자(USER) 레벨 Skills 디렉토리는 $HOME/.agents/skills/입니다. .codex/skills/가 아님에 주의하세요. 이는 Agent Skills 표준의 특정 경로 규약입니다."
+  },
+  {
+    "id": "q3",
+    "question": "SKILL.md frontmatter에서 필수(required) 필드는?",
+    "options": [
+      "name, description, version",
+      "name, description",
+      "name, description, allowed-tools",
+      "name, description, license"
+    ],
+    "answer": 1,
+    "explanation": "SKILL.md frontmatter에서 필수 필드는 name과 description 두 가지뿐입니다. allowed-tools, license, compatibility, metadata 등은 선택적(optional) 필드입니다."
+  },
+  {
+    "id": "q4",
+    "question": "Skill 디렉토리명과 SKILL.md의 name 필드의 관계는?",
+    "options": [
+      "무관하며 자유롭게 지정할 수 있습니다.",
+      "디렉토리명은 name 필드와 정확히 일치해야 합니다 (lowercase, hyphen-case, 64자 이내).",
+      "디렉토리명은 PascalCase, name 필드는 lowercase여야 합니다.",
+      "name 필드가 디렉토리명보다 우선합니다."
+    ],
+    "answer": 1,
+    "explanation": "Skill 디렉토리명은 SKILL.md의 name 필드와 정확히 일치해야 하며, lowercase hyphen-case이고 64자 이내여야 합니다. 예: 디렉토리 my-skill/ → name = \"my-skill\""
+  },
+  {
+    "id": "q5",
+    "question": "SKILL.md에서 금지된 파일은?",
+    "options": [
+      "scripts/ 디렉토리",
+      "assets/ 디렉토리",
+      "agents/openai.yaml",
+      "README.md, CHANGELOG.md 등 보조 문서"
+    ],
+    "answer": 3,
+    "explanation": "skill-creator 명세에 따라 README.md, CHANGELOG.md 등 보조 문서는 Skill 디렉토리 내에 포함할 수 없습니다. scripts/, assets/, references/, agents/openai.yaml은 허용됩니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex에서 스킬을 명시적으로 호출하는 방법은?",
+    "options": [
+      "프롬프트에 @skill-name을 입력합니다.",
+      "프롬프트에 $skill-name을 입력하거나 /skills 선택기를 사용합니다.",
+      "/invoke skill-name 슬래시 커맨드를 사용합니다.",
+      "config.toml의 active_skill = \"skill-name\"으로 설정합니다."
+    ],
+    "answer": 1,
+    "explanation": "스킬을 명시적으로 호출하려면 프롬프트에 $skill-name을 입력하거나 /skills 선택기를 사용합니다. 암시적 호출은 description 매칭으로 자동 실행됩니다."
+  },
+  {
+    "id": "q7",
+    "question": "agents/openai.yaml에서 암시적 호출을 비활성화하는 설정은?",
+    "options": [
+      "policy.implicit_invocation: disabled",
+      "policy.allow_implicit_invocation: false",
+      "invocation.auto: false",
+      "policy.auto_invoke: false"
+    ],
+    "answer": 1,
+    "explanation": "agents/openai.yaml의 policy.allow_implicit_invocation: false로 설정하면 description 매칭에 의한 암시적 호출을 비활성화합니다. 기본값은 true(암시적 호출 허용)입니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex Skills의 점진적 공개(progressive disclosure)에 대한 설명으로 올바른 것은?",
+    "options": [
+      "시작 시 모든 SKILL.md 내용을 로드합니다.",
+      "시작 시 name과 description만 로드하여 약 2% 컨텍스트 예산을 사용합니다.",
+      "스킬 호출 시에도 name만 로드하고 나머지는 로드하지 않습니다.",
+      "컨텍스트 예산이 50% 남았을 때만 스킬을 로드합니다."
+    ],
+    "answer": 1,
+    "explanation": "점진적 공개 방식으로 시작 시에는 name과 description만 로드하여 약 2% 컨텍스트 예산만 사용합니다. 스킬이 실제 호출될 때 전체 내용이 로드됩니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex의 큐레이트 Skills 카탈로그 저장소 URL은?",
+    "options": [
+      "github.com/openai/codex-skills",
+      "github.com/openai/skills",
+      "github.com/anthropic/agent-skills",
+      "agentskills.io/catalog"
+    ],
+    "answer": 1,
+    "explanation": "큐레이트 Skills 카탈로그는 github.com/openai/skills에 있습니다. figma-implement-design, linear, imagegen, cloudflare-deploy 등 다양한 스킬이 포함되어 있습니다."
+  },
+  {
+    "id": "q10",
+    "question": "config.toml에서 특정 스킬을 비활성화하는 올바른 설정은?",
+    "options": [
+      "[skills.disabled] name = \"my-skill\"",
+      "[[skills.config]] path = \"my-skill\" enabled = false",
+      "skills.ignore = [\"my-skill\"]",
+      "disabled_skills = [\"my-skill\"]"
+    ],
+    "answer": 1,
+    "explanation": "config.toml에서 [[skills.config]] path = \"my-skill\" enabled = false 형태로 특정 스킬을 비활성화합니다. TOML의 배열 테이블(double bracket) 문법을 사용합니다."
+  },
+  {
+    "id": "q11",
+    "question": "agents/openai.yaml에서 MCP 의존성을 정의할 때 사용하는 transport 타입 예시는?",
+    "options": [
+      "type: \"http\", transport: \"rest\"",
+      "type: \"mcp\", transport: \"streamable_http\"",
+      "type: \"tool\", protocol: \"mcp\"",
+      "transport: \"websocket\", type: \"mcp-server\""
+    ],
+    "answer": 1,
+    "explanation": "agents/openai.yaml의 dependencies.tools 섹션에서 type: \"mcp\", transport: \"streamable_http\"로 MCP 의존성을 정의합니다. url 필드도 함께 지정합니다."
+  },
+  {
+    "id": "q12",
+    "question": "새 스킬을 생성하는 시스템 스킬 명령은?",
+    "options": [
+      "$skill-new",
+      "$create-skill",
+      "$skill-creator",
+      "$skill-init"
+    ],
+    "answer": 2,
+    "explanation": "$skill-creator는 새 스킬을 생성하는 시스템 스킬입니다. $skill-installer linear처럼 기존 스킬을 설치하는 $skill-installer도 있습니다."
+  }
+]

@@ -1,0 +1,116 @@
+---
+title: Codex CLI 설치
+description: npm, Homebrew, 소스 빌드 등 플랫폼별 Codex CLI 설치 방법을 안내합니다.
+sidebar:
+  order: 1
+learning_objectives:
+  - "npm, Homebrew, 소스 빌드 세 가지 설치 방법의 차이를 설명할 수 있다"
+  - "플랫폼(macOS/Linux/Windows)별로 적합한 설치 방법을 선택할 수 있다"
+prerequisites:
+  - "Node.js 18 이상 또는 Rust 툴체인 (소스 빌드 시)"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI GitHub Repository"
+    url: "https://github.com/openai/codex"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Codex CLI는 Rust로 작성된 오픈소스 도구입니다. Claude Code가 `npm install -g @anthropic-ai/claude-code` 한 줄로 설치되었던 것과 달리, Codex는 **세 가지 설치 경로** 를 제공합니다. 용도와 환경에 따라 선택하세요.
+
+## npm으로 설치 (추천)
+
+Node.js 환경이 이미 갖춰진 개발자라면 가장 빠른 방법입니다.
+
+```bash
+npm install -g @openai/codex
+```
+
+설치 후 버전을 확인합니다.
+
+```bash
+codex --version
+```
+
+:::tip[Node.js 버전]
+Node.js 18 이상을 권장합니다. `node --version`으로 먼저 확인하세요.
+:::
+
+## Homebrew로 설치 (macOS / Linux)
+
+Homebrew를 사용하는 macOS 또는 Linux 환경에서는 tap 없이 바로 설치할 수 있습니다.
+
+```bash
+brew install codex
+```
+
+Homebrew는 PATH 설정을 자동으로 처리하므로 추가 설정 없이 바로 사용할 수 있습니다.
+
+## 소스에서 빌드 (고급)
+
+최신 커밋을 직접 빌드하거나 기여를 원하는 경우 GitHub에서 소스를 받아 빌드합니다. Rust 툴체인(`rustup`)이 필요합니다.
+
+```bash
+# Rust 툴체인 설치 (이미 있으면 생략)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 저장소 클론 및 빌드
+git clone https://github.com/openai/codex
+cd codex
+cargo build --release
+
+# 빌드된 바이너리를 PATH에 추가
+cp target/release/codex ~/.local/bin/
+```
+
+:::note[참고]
+소스 빌드는 빌드 시간이 수 분 소요될 수 있습니다. 일반 사용자는 npm 또는 Homebrew를 권장합니다.
+:::
+
+## 플랫폼별 요약
+
+| 플랫폼 | 권장 방법 | 명령 |
+|--------|-----------|------|
+| macOS | Homebrew 또는 npm | `brew install codex` |
+| Linux | npm 또는 소스 빌드 | `npm install -g @openai/codex` |
+| Windows | npm | `npm install -g @openai/codex` |
+| CI/CD | npm (버전 고정) | `npm install -g @openai/codex@x.y.z` |
+
+<ConceptCard title="Claude Code와의 차이">
+Claude Code는 npm 단일 패키지로만 배포되지만, Codex CLI는 Rust 바이너리이므로 npm 패키지는 사실상 바이너리 래퍼입니다. Homebrew나 소스 빌드로 설치하면 Node.js 의존성 없이도 실행할 수 있습니다.
+</ConceptCard>
+
+## Windows 추가 설정
+
+Windows에서 npm으로 설치한 경우, PowerShell 실행 정책을 확인해야 할 수 있습니다.
+
+```powershell
+# 실행 정책 확인
+Get-ExecutionPolicy
+
+# 필요 시 변경 (관리자 PowerShell)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+## 설치 확인
+
+어느 방법으로 설치했든 다음 명령으로 정상 설치를 확인합니다.
+
+```bash
+codex --version
+codex --help
+```
+
+`codex --help` 출력에서 `exec`, `resume`, `fork` 등의 서브커맨드가 보이면 설치가 완료된 것입니다.
+
+## 핵심 정리
+
+- Codex CLI는 `@openai/codex` (npm), `brew install codex` (Homebrew), GitHub 소스 빌드 세 가지로 설치 가능합니다
+- npm 방법은 Node.js 18 이상이 필요하며 모든 플랫폼에서 동작합니다
+- macOS/Linux에서는 Homebrew가 PATH 자동 설정으로 편리합니다
+- 소스 빌드는 Rust 툴체인이 필요하며 최신 커밋이나 커스텀 빌드 목적에 적합합니다
+- `codex --version`으로 설치 성공 여부를 확인하세요

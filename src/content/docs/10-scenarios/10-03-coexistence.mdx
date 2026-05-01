@@ -1,0 +1,123 @@
+---
+title: Claude Code와 Codex 병용 전략
+description: CLAUDE.md와 AGENTS.md를 동기화하거나 공유하고, 모델별 강점을 분담하는 병용 전략을 설명합니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "project_doc_fallback_filenames을 활용해 두 도구가 같은 지침 파일을 공유하도록 설정할 수 있다"
+  - "모델별 강점을 분담하는 병용 전략을 비용 관점에서 설명할 수 있다"
+prerequisites:
+  - "CLAUDE.md와 AGENTS.md 기본 이해"
+  - "Codex config.toml 기본 이해"
+estimated_minutes: 25
+references:
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-01"
+  - title: "Codex Models"
+    url: "https://developers.openai.com/codex/models"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Compare from '../../../components/learning/Compare.astro';
+
+## 왜 병용하는가
+
+Claude Code와 Codex는 각각 다른 강점이 있습니다. 한 도구로 완전히 전환하는 대신, 작업 성격에 따라 두 도구를 골라 쓰면 비용 효율과 성능을 동시에 높일 수 있습니다.
+
+| 작업 유형 | 추천 도구 | 이유 |
+|---------|---------|------|
+| 심층 아키텍처 분석 | Claude (`claude-opus-4-6`) | 긴 추론 컨텍스트, 최고 품질 분석 |
+| 빠른 코드 반복 | Codex (`gpt-5.3-codex-spark`) | 즉각적 반복, ChatGPT Pro 플랜 |
+| 보안 취약점 리뷰 | Claude (`claude-opus-4-6`) | 깊은 추론 능력 |
+| 대량 파일 리팩터링 | Codex (`gpt-5.4`) | 멀티 에이전트 병렬 처리 |
+| 대화형 페어 프로그래밍 | Codex (`gpt-5.3-codex`) | 코딩 특화 모델 |
+| 문서 작성 및 설명 | Claude (`claude-sonnet-4-6`) | 자연스러운 한국어 |
+
+## 지침 파일 공유 전략
+
+두 도구가 같은 지침 파일을 사용하게 하는 방법이 두 가지 있습니다.
+
+### 방법 1: project_doc_fallback_filenames 활용
+
+Codex `config.toml`에 `CLAUDE.md`를 폴백으로 등록합니다. `AGENTS.md`가 없으면 자동으로 `CLAUDE.md`를 읽습니다.
+
+```toml
+# .codex/config.toml
+project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]
+```
+
+이 방식은 기존 `CLAUDE.md`를 그대로 유지하면서 Codex를 도입할 때 전환 비용을 최소화합니다.
+
+### 방법 2: 심볼릭 링크로 단일 파일 관리
+
+`AGENTS.md` → `CLAUDE.md` 심볼릭 링크를 만들면 한 파일만 편집해도 두 도구에 동시 반영됩니다.
+
+```bash
+# CLAUDE.md를 원본으로, AGENTS.md를 심볼릭 링크로
+ln -s CLAUDE.md AGENTS.md
+
+# 또는 반대로 AGENTS.md를 원본으로
+ln -s AGENTS.md CLAUDE.md
+```
+
+:::caution[심볼릭 링크 주의]
+심볼릭 링크를 git에 커밋하면 팀원 환경에 따라 동작이 다를 수 있습니다. `AGENTS.md`와 `CLAUDE.md`의 문법 차이(Claude Code 전용 지시어 등)가 있다면 폴백 방식이 더 안전합니다.
+:::
+
+### 방법 3: 공통 파일 + 도구별 보완 파일
+
+공통 지침은 하나의 파일에 두고, 도구별 추가 지침만 각각 파일에 작성합니다.
+
+```
+project/
+├── AGENTS.md           # 공통 지침 (Codex 기본 로드)
+├── CLAUDE.md           # Claude Code 기본 로드 (공통 + Claude 특화)
+└── .codex/
+    └── AGENTS.md       # Codex 특화 추가 지침
+```
+
+`CLAUDE.md` 내용:
+```markdown
+<!-- AGENTS.md 내용 포함 참조 -->
+[AGENTS.md와 동일한 공통 내용]
+
+## Claude Code 전용
+- /effort high 명령으로 심층 분석 시작
+- claude-opus-4-6 모델 사용 권장
+```
+
+## 비용 관점 분담
+
+두 도구의 요금제를 비교하면 최적 분담 전략이 보입니다.
+
+| 플랜 | 도구 | 비용 | 적합한 작업 |
+|------|------|------|------------|
+| Claude Pro | Claude Code | $20/mo | 일반 코딩, 문서 |
+| Claude Max | Claude Code | $200/mo | 헤비 사용, 대형 프로젝트 |
+| OpenAI Pro | Codex | $100/mo | Codex Spark 접근, 빠른 반복 |
+| OpenAI Pro | Codex | $200/mo | Plus의 20배 사용량 |
+| API Key | Codex CLI | 토큰 종량제 | CI/자동화 |
+
+<ConceptCard title="실용적인 병용 설정 예시">
+Claude Pro($20) + OpenAI API Key(종량제) 조합이 개인 개발자에게 실용적입니다.
+
+- **Claude Code**: 복잡한 설계 논의, 긴 코드 리뷰, 문서 작성
+- **Codex CLI(API Key)**: CI 자동화, 반복적인 리팩터링, 대량 파일 처리
+
+월 API 사용량이 $20 미만이면 두 도구 합산 비용이 $40 이하로 유지됩니다.
+</ConceptCard>
+
+## MCP를 통한 통합 워크플로
+
+`codex mcp-server`를 활용하면 Claude Code에서 Codex를 직접 호출하는 통합 워크플로를 구성할 수 있습니다. [09-05](/learn-codex-from-claude-code/09-advanced/09-05-codex-as-mcp-server/) 챕터를 참고하세요.
+
+## 핵심 정리
+
+- 두 도구의 강점을 분담하면 비용 효율과 성능을 동시에 높일 수 있습니다
+- `project_doc_fallback_filenames = ["CLAUDE.md"]` 로 기존 파일을 Codex 폴백으로 활용할 수 있습니다
+- 심볼릭 링크로 단일 파일을 두 도구가 공유하는 방법도 있지만, 도구별 문법 차이 주의가 필요합니다
+- **심층 분석은 Claude Opus**, **빠른 반복은 Codex Spark** 같은 역할 분담이 효과적입니다
+- Claude Pro + OpenAI API Key 조합이 개인 개발자에게 비용 효율적인 시작점입니다
+- `codex mcp-server`로 Claude Code 안에서 Codex를 직접 호출하는 통합도 가능합니다

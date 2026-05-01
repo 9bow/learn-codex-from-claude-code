@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question": "Codex Profiles 기능의 현재 상태와 제한 사항은?",
+    "options": [
+      "GA(정식 출시) 상태이며 모든 플랫폼에서 지원됩니다.",
+      "Experimental 상태이며 IDE 확장에서는 미지원입니다.",
+      "Deprecated 상태로 곧 제거될 예정입니다.",
+      "Beta 상태이며 Pro 플랜 이상에서만 사용 가능합니다."
+    ],
+    "answer": 1,
+    "explanation": "Profiles는 config.toml의 [profiles.<name>] 섹션으로 정의하며, codex --profile <name> 또는 -p <name>으로 사용합니다. Experimental 상태이며 IDE 확장에서는 미지원입니다."
+  },
+  {
+    "id": "q2",
+    "question": "codex fork 명령의 동작을 올바르게 설명한 것은?",
+    "options": [
+      "git fork처럼 원격 저장소를 복제합니다.",
+      "현재 세션을 새 스레드로 분기하되 원본 세션을 보존합니다.",
+      "현재 세션을 종료하고 새 세션을 시작합니다.",
+      "특정 커밋 시점으로 세션을 되돌립니다."
+    ],
+    "answer": 1,
+    "explanation": "codex fork는 현재 세션을 새 스레드로 분기합니다. 원본 세션은 보존되며 독립적인 방향으로 탐색할 수 있습니다. 가설 검증이나 대안 구현 시 유용합니다."
+  },
+  {
+    "id": "q3",
+    "question": "Codex Cloud와 API Key 지원에 관한 올바른 설명은?",
+    "options": [
+      "Codex Cloud는 API Key를 통한 pay-per-token을 지원합니다.",
+      "API Key는 CLI/SDK/IDE만 지원하며 Codex Cloud는 미지원입니다.",
+      "Codex Cloud와 CLI 모두 API Key를 지원합니다.",
+      "API Key는 ChatGPT Pro 플랜에서만 발급받을 수 있습니다."
+    ],
+    "answer": 1,
+    "explanation": "API Key는 CLI, SDK, IDE에서만 사용 가능하며 Codex Cloud는 API Key를 지원하지 않습니다. Business/Enterprise 플랜은 토큰 기반 크레딧을 사용합니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex Subagent 정의 파일의 형식과 위치는?",
+    "options": [
+      "~/.codex/agents/<name>.md (Markdown)",
+      "~/.codex/agents/<name>.yaml (YAML)",
+      "~/.codex/agents/<name>.toml 또는 .codex/agents/<name>.toml (TOML)",
+      "~/.codex/agents/<name>.json (JSON)"
+    ],
+    "answer": 2,
+    "explanation": "Subagent 정의 파일은 ~/.codex/agents/<name>.toml 또는 프로젝트의 .codex/agents/<name>.toml에 TOML 형식으로 작성합니다. Claude Code의 .claude/agents/<name>.md (Markdown)와 다릅니다."
+  },
+  {
+    "id": "q5",
+    "question": "Codex를 MCP 서버로 노출하는 명령은?",
+    "options": [
+      "codex mcp --expose",
+      "codex mcp-server",
+      "codex serve --mcp",
+      "codex as-mcp-server"
+    ],
+    "answer": 1,
+    "explanation": "codex mcp-server 명령으로 Codex 자체를 MCP 서버로 노출할 수 있습니다. 다른 AI 도구나 애플리케이션이 MCP 클라이언트로 Codex에 연결할 수 있게 됩니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex Subagent의 job_max_runtime_seconds 기본값은?",
+    "options": [
+      "600초 (10분)",
+      "900초 (15분)",
+      "1800초 (30분)",
+      "3600초 (1시간)"
+    ],
+    "answer": 2,
+    "explanation": "[agents] 섹션에서 job_max_runtime_seconds = 1800이 기본값입니다. 30분 이상 실행되는 작업은 이 한도를 초과하지 않도록 설계해야 합니다."
+  },
+  {
+    "id": "q7",
+    "question": "세션 히스토리를 저장하지 않는 설정은?",
+    "options": [
+      "history.persistence = \"disabled\"",
+      "history.persistence = \"none\"",
+      "history.save = false",
+      "history.enabled = false"
+    ],
+    "answer": 1,
+    "explanation": "history.persistence = \"none\"으로 설정하면 세션 히스토리를 저장하지 않습니다. 저장 옵션은 \"save-all\"과 \"none\" 두 가지입니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex 플러그인 마켓플레이스에 접근하는 명령은?",
+    "options": [
+      "codex marketplace",
+      "codex plugins list",
+      "codex plugin marketplace",
+      "codex extensions browse"
+    ],
+    "answer": 2,
+    "explanation": "codex plugin marketplace 명령으로 플러그인 마켓플레이스에 접근합니다. MCP 서버와 스킬을 검색하고 설치할 수 있습니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex에서 여러 세션 전체를 재개하는 명령은?",
+    "options": [
+      "codex resume --all",
+      "codex resume --every",
+      "codex resume-all",
+      "codex sessions --restore-all"
+    ],
+    "answer": 0,
+    "explanation": "codex resume --all로 여러 세션을 모두 재개할 수 있습니다. codex resume --last는 가장 최근 세션, codex resume <SESSION_ID>는 특정 세션을 재개합니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex Subagent 정의 파일에서 최대 에이전트 중첩 깊이를 제한하는 설정은?",
+    "options": [
+      "max_depth = 1",
+      "agent_nesting_limit = 1",
+      "max_recursion = 1",
+      "spawn_depth_limit = 1"
+    ],
+    "answer": 0,
+    "explanation": "[agents] 섹션의 max_depth = 1로 에이전트 중첩 깊이를 제한합니다. max_threads = 6와 함께 사용하여 리소스 사용을 제어합니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex에서 이전 세션을 계속 이어 작업하는 exec 명령은?",
+    "options": [
+      "codex exec continue --last \"continue\"",
+      "codex exec resume --last \"continue\"",
+      "codex exec --session last \"continue\"",
+      "codex exec --restore \"continue\""
+    ],
+    "answer": 1,
+    "explanation": "codex exec resume --last \"continue\"로 이전 세션을 이어서 비대화형 모드로 작업을 계속합니다. 파이프라인에서 이전 컨텍스트를 유지하며 작업할 때 유용합니다."
+  }
+]

@@ -1,0 +1,156 @@
+---
+title: 팀 단위 스킬 공유
+description: Codex 스킬 스캔 경로를 활용하여 팀 전체에 스킬을 자동 공유하는 방법을 안내합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "Codex 스킬 스캔 경로를 이해하고 팀 공유 스킬을 설정할 수 있다"
+  - "Claude Code와 Codex의 스킬 공유 방식 차이를 설명할 수 있다"
+prerequisites:
+  - "Agent Skills 표준 기초 (06-01 챕터)"
+  - "Git 기본 사용 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+  - title: "Agent Skills Specification"
+    url: "https://agentskills.io/specification"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+## 팀 공유의 핵심: 스캔 경로
+
+Codex가 스킬을 로드하는 방식은 스캔 경로 우선순위에 따라 결정됩니다. 팀 공유의 핵심은 **REPO 경로** 에 스킬을 넣고 git에 커밋하는 것입니다.
+
+| 경로 | 스캔 우선순위 | 공유 범위 |
+|------|---------------|-----------|
+| SYSTEM (내부) | 최우선 | Codex 번들 |
+| `/etc/codex/skills/` | ADMIN | 시스템 전체 |
+| `~/.agents/skills/` | USER | 개인 전역 |
+| `$REPO_ROOT/.agents/skills/` | REPO root | 팀 (git 공유) |
+| `$CWD/.agents/skills/` | REPO CWD | 서브디렉토리 |
+
+## 팀 스킬 체크인 방법
+
+프로젝트 루트에 `.agents/skills/` 폴더를 만들고 스킬을 넣은 뒤 git에 커밋하면, 팀원 모두가 `codex` 를 실행하는 즉시 해당 스킬을 사용할 수 있습니다.
+
+```bash
+mkdir -p .agents/skills/code-review
+# SKILL.md 작성
+git add .agents/skills/
+git commit -m "chore: add code-review skill for team"
+```
+
+이후 팀원이 `git pull` 만 하면 별도 설치 없이 스킬이 자동 로드됩니다.
+
+```
+$code-review   # 바로 사용 가능
+```
+
+<ConceptCard title="REPO root vs REPO CWD">
+`$REPO_ROOT/.agents/skills/` 는 git 리포지토리 루트 기준이고, `$CWD/.agents/skills/` 는 현재 작업 디렉토리 기준입니다. 모노레포에서 패키지별로 다른 스킬을 사용하고 싶다면 `$CWD/.agents/skills/` 를 활용할 수 있습니다.
+
+예를 들어 `packages/frontend/.agents/skills/` 에 프론트엔드 전용 스킬을, `packages/backend/.agents/skills/` 에 백엔드 전용 스킬을 두는 방식입니다.
+</ConceptCard>
+
+## Claude Code와의 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code 스킬 공유 방식**
+  - `~/.claude/skills/` : 개인 전역
+  - `.claude/skills/` : 프로젝트 (git 공유 가능)
+  - 플러그인: 팀 단위 배포
+  - 공유 방법: git 커밋 또는 플러그인 배포
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex 스킬 공유 방식**
+  - `~/.agents/skills/` : 개인 전역 (USER)
+  - `$REPO_ROOT/.agents/skills/` : 팀 공유 (git)
+  - `$CWD/.agents/skills/` : 서브디렉토리
+  - 공유 방법: git 커밋만으로 자동 공유
+
+  </Fragment>
+</Compare>
+
+두 도구 모두 프로젝트 레벨 스킬을 git으로 공유할 수 있습니다. 다만 경로가 다릅니다.
+
+| 항목 | Claude Code | Codex |
+|------|-------------|-------|
+| 프로젝트 스킬 경로 | `.claude/skills/` | `.agents/skills/` |
+| 개인 전역 경로 | `~/.claude/skills/` | `~/.agents/skills/` |
+| 플러그인 스킬 | 지원 | 미지원 (openai/skills 리포 활용) |
+
+## 스킬 비활성화
+
+특정 스킬을 일시적으로 비활성화하려면 `config.toml` 에 다음을 추가합니다.
+
+```toml
+# ~/.codex/config.toml 또는 .codex/config.toml
+
+[[skills.config]]
+path = ".agents/skills/code-review"
+enabled = false
+```
+
+`path` 는 스킬 디렉토리의 경로를 지정합니다. 절대 경로 또는 홈/리포 기준 상대 경로를 사용합니다.
+
+:::tip[팁]
+팀에서 특정 스킬을 프로덕션 환경에서만 비활성화하고 싶다면, `.codex/config.toml` 대신 CI 환경의 `~/.codex/config.toml` 에만 `enabled = false` 를 추가하세요.
+:::
+
+## 개인 스킬과 팀 스킬 분리 전략
+
+팀에서 스킬을 체계적으로 관리하는 권장 구조입니다.
+
+```
+project/
+├── .agents/
+│   └── skills/
+│       ├── deploy-staging/     # 팀 공유: 스테이징 배포
+│       │   ├── SKILL.md
+│       │   └── agents/
+│       │       └── openai.yaml
+│       ├── run-tests/          # 팀 공유: 테스트 실행
+│       │   └── SKILL.md
+│       └── code-review/        # 팀 공유: 코드 리뷰
+│           ├── SKILL.md
+│           └── scripts/
+│               └── diff.sh
+~/.agents/
+└── skills/
+    └── my-personal-skill/      # 개인 전용: git에 포함 안 됨
+        └── SKILL.md
+```
+
+## 스킬 보안 고려사항
+
+팀 스킬을 git에 커밋할 때는 다음 사항을 반드시 지킵니다.
+
+1. **API 키나 토큰을 SKILL.md에 하드코딩하지 않습니다.** 환경 변수 참조를 사용하고, `agents/openai.yaml` 의 `dependencies.tools` 에서 MCP 의존성을 선언합니다.
+2. **`scripts/` 폴더의 스크립트를 코드 리뷰합니다.** 외부 기여자가 악의적인 스크립트를 포함할 수 있습니다.
+3. **프로젝트 신뢰 설정을 확인합니다.** Codex는 신뢰된 프로젝트에서만 프로젝트 스킬을 로드합니다.
+
+:::caution[주의]
+외부 리포지토리에서 clone한 프로젝트의 `.agents/skills/` 를 사용하기 전에, 스킬 내용을 직접 검토하세요. 특히 `scripts/` 폴더의 실행 파일은 주의 깊게 살펴봐야 합니다.
+:::
+
+<ConceptCard title="Desktop App의 스킬 관리 UI">
+Codex Desktop App에는 스킬 생성 및 관리 전용 UI가 포함되어 있습니다. GUI 환경에서 스킬을 추가하고, 어떤 스킬이 활성화되어 있는지 확인하며, 비활성화할 수 있습니다. 스킬 편집 내용은 자동으로 `.agents/skills/` 에 저장됩니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- `$REPO_ROOT/.agents/skills/` 에 스킬을 추가하고 git에 커밋하면 팀 전체가 즉시 사용할 수 있습니다
+- 개인 전용 스킬은 `~/.agents/skills/` 에, 팀 공유 스킬은 `.agents/skills/` 에 분리합니다
+- Claude Code의 `.claude/skills/` 와 유사하지만 경로가 `.agents/skills/` 로 다릅니다
+- `[[skills.config]] enabled = false` 로 특정 스킬을 선택적으로 비활성화할 수 있습니다
+- 팀 스킬에는 API 키를 하드코딩하지 말고, `scripts/` 폴더 내용을 코드 리뷰해야 합니다
+
+<Quiz client:load section="06" />

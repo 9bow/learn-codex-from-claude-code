@@ -1,0 +1,126 @@
+---
+title: Codex Rules 소개
+description: 팀 단위 자동화 규칙인 Codex Rules와 AGENTS.md와의 역할 분담을 설명합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "Codex Rules가 AGENTS.md와 어떻게 다른 역할을 하는지 설명할 수 있다"
+  - "팀 자동화를 위한 기본 Rules 예시를 작성할 수 있다"
+prerequisites:
+  - "AGENTS.md 변환 완료"
+  - "approval_policy 이해"
+estimated_minutes: 20
+references:
+  - title: "Codex Rules"
+    url: "https://developers.openai.com/codex/rules"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Claude Code에는 `CLAUDE.md`로 에이전트 행동을 안내하는 방법만 있었습니다. Codex는 여기에 더해 **Codex Rules** 라는 별도 레이어를 제공합니다. Rules는 자연어 지침이 아닌 **자동화 규칙** 으로, 특정 명령에 더 높은 권한을 부여하거나 조건에 따라 동작을 제어합니다.
+
+## AGENTS.md vs Codex Rules
+
+<Compare>
+  <Fragment slot="left">
+  **AGENTS.md**
+  - 자연어로 작성된 행동 지침
+  - "이런 상황에서 이렇게 해주세요"
+  - 에이전트가 해석하고 판단
+  - 프로젝트/팀 컨텍스트 전달
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex Rules**
+  - 구조화된 자동화 규칙
+  - 특정 명령에 권한 자동 부여
+  - 조건 매칭 시 자동 실행
+  - 팀 단위 정책 강제
+
+  </Fragment>
+</Compare>
+
+## Rules의 핵심 용도
+
+Rules는 주로 다음 두 가지 목적으로 사용합니다.
+
+1. **특정 명령에 더 높은 권한 부여**: `approval_policy`가 `on-request`여도 특정 명령은 항상 자동 승인
+2. **조건부 자동 실행**: 특정 파일 변경, 브랜치 이름, 이슈 레이블 등 조건에 따라 작업 자동화
+
+## Rules 설정 위치
+
+Rules는 `developers.openai.com/codex/rules`에서 팀/조직 단위로 관리하거나, 프로젝트 `.codex/rules.toml`에 정의합니다.
+
+```toml
+# .codex/rules.toml 예시
+
+[[rules]]
+name = "allow-test-commands"
+description = "테스트 명령은 항상 자동 승인"
+condition = { command_pattern = "^(pnpm|npm) (test|run test)" }
+action = { approval = "auto" }
+
+[[rules]]
+name = "allow-lint"
+description = "린트 명령 자동 승인"
+condition = { command_pattern = "^(pnpm|npm) (lint|run lint)" }
+action = { approval = "auto" }
+
+[[rules]]
+name = "block-force-push"
+description = "force push 항상 차단"
+condition = { command_pattern = "git push.*--force" }
+action = { approval = "deny" }
+```
+
+:::note[Rules는 approval_policy를 오버라이드]
+`approval_policy = "on-request"`이더라도 Rules에서 `approval = "auto"`로 지정된 명령은 자동 승인됩니다. 반대로 `approval_policy = "never"`여도 Rules에서 `approval = "deny"`이면 차단됩니다.
+:::
+
+## 팀 단위 활용 예시
+
+CI/CD 파이프라인에서 자주 사용하는 명령들을 Rules로 자동화하면 팀 전체의 승인 부담을 줄일 수 있습니다.
+
+```toml
+# 빌드 명령 자동 승인
+[[rules]]
+name = "allow-build"
+condition = { command_pattern = "^(pnpm|npm|yarn) (build|run build)" }
+action = { approval = "auto" }
+
+# 읽기 전용 git 명령 자동 승인
+[[rules]]
+name = "allow-git-read"
+condition = { command_pattern = "^git (status|log|diff|show|branch)" }
+action = { approval = "auto" }
+
+# 프로덕션 배포는 항상 사용자 승인 요구
+[[rules]]
+name = "require-deploy-approval"
+condition = { command_pattern = ".*deploy.*prod" }
+action = { approval = "user" }
+```
+
+## AGENTS.md와의 역할 분담 정리
+
+| 항목 | AGENTS.md | Codex Rules |
+|------|-----------|-------------|
+| 형식 | 자연어 마크다운 | 구조화된 TOML |
+| 목적 | 컨텍스트 + 지침 전달 | 권한 + 자동화 정책 |
+| 해석 주체 | AI 에이전트 | Codex 런타임 |
+| 적용 시점 | 매 세션 프롬프트에 주입 | 도구 실행 시 매칭 |
+| git 커밋 | 권장 | 권장 |
+
+<ConceptCard title="Claude Code의 Hooks와 비교">
+Claude Code의 `PreToolUse` hooks와 유사하지만, Codex Rules는 TOML로 더 간결하게 표현되고 팀 단위 공유가 쉽습니다. 복잡한 로직이 필요하면 Rules 대신 `hooks.PreToolUse`의 `command` 타입을 사용하세요.
+</ConceptCard>
+
+## 핵심 정리
+
+- Codex Rules는 AGENTS.md와 보완 관계입니다 — AGENTS.md는 자연어 지침, Rules는 자동화 규칙입니다
+- Rules는 특정 명령에 자동 승인/거부를 부여하여 `approval_policy`를 명령별로 세분화합니다
+- `.codex/rules.toml`에 정의하며 git으로 팀 전체가 공유할 수 있습니다
+- 빌드/테스트/린트 명령은 자동 승인, 프로덕션 배포는 사용자 승인 요구로 설정하는 패턴이 일반적입니다
+- 복잡한 조건 로직은 `hooks.PreToolUse`의 command 타입으로 처리하는 것이 적합합니다

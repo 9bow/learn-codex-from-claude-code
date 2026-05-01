@@ -1,0 +1,42 @@
+---
+type Props = { value: string; label: string; hint?: string; variant?: 'claude'|'codex'|'neutral' };
+const { value, label, hint, variant = 'neutral' } = Astro.props;
+---
+<div class={`omc-stat omc-stat-${variant}`}>
+  <div class="omc-stat-value">{value}</div>
+  <div class="omc-stat-label">{label}</div>
+  {hint && <div class="omc-stat-hint">{hint}</div>}
+</div>
+
+<style>
+.omc-stat {
+  border: 1px solid var(--sl-color-gray-5, #475569);
+  border-radius: 0.625rem;
+  padding: 1rem 1.1rem;
+  background: var(--sl-color-gray-7, #1e293b);
+  min-width: 0;
+}
+.omc-stat-claude { border-left: 4px solid #f59e0b; }
+.omc-stat-codex  { border-left: 4px solid #10a37f; }
+.omc-stat-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fbbf24, #10a37f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.omc-stat-label {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: var(--sl-color-white, #f8fafc);
+  font-weight: 600;
+}
+.omc-stat-hint {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--sl-color-gray-3, #94a3b8);
+  line-height: 1.45;
+}
+</style>

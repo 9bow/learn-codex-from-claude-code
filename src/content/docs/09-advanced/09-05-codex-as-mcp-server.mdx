@@ -1,0 +1,136 @@
+---
+title: Codex를 MCP 서버로 노출하기
+description: codex mcp-server 명령으로 Codex 자체를 MCP 서버로 만들어 agent-to-agent 워크플로를 구성하는 방법을 설명합니다.
+sidebar:
+  order: 5
+learning_objectives:
+  - "codex mcp-server로 Codex를 MCP 서버로 노출하는 구성을 설명할 수 있다"
+  - "Claude Code에서 Codex MCP 서버를 호출하는 agent-to-agent 워크플로를 설계할 수 있다"
+prerequisites:
+  - "MCP 개념 이해 (05-feature-mapping 섹션 참고)"
+  - "Codex 기본 설치 완료"
+estimated_minutes: 25
+references:
+  - title: "Codex CLI Reference — mcp-server"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+  - title: "Codex MCP Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Compare from '../../../components/learning/Compare.astro';
+
+import Quiz from '../../../components/learning/Quiz';
+
+## Codex를 MCP 서버로 노출
+
+`codex mcp-server` 명령은 Codex 자체를 **MCP(Model Context Protocol) 서버** 로 노출합니다. 이렇게 하면 다른 에이전트나 도구가 Codex를 MCP 클라이언트로서 호출할 수 있게 됩니다.
+
+:::caution[실험적 기능]
+`codex mcp-server` 는 실험적(Experimental) 기능입니다. API가 변경될 수 있으므로 프로덕션 환경에서는 주의해서 사용하세요.
+:::
+
+```bash
+# Codex를 MCP 서버로 시작 (stdio 트랜스포트)
+codex mcp-server
+
+# 포트를 지정해 HTTP 트랜스포트로 시작
+codex mcp-server --port 8765
+```
+
+서버가 시작되면 MCP 클라이언트에서 연결해 Codex의 에이전트 실행 기능을 도구(tool)로 호출할 수 있습니다.
+
+## Claude Code에서 Codex 호출하기
+
+가장 강력한 활용 패턴은 **Claude Code(MCP 클라이언트)가 Codex(MCP 서버)를 호출** 하는 구조입니다. 이렇게 하면 두 에이전트의 강점을 조합할 수 있습니다.
+
+**1단계: Codex MCP 서버 등록**
+
+Claude Code의 MCP 설정 파일(`.mcp.json` 또는 `~/.claude.json`)에 Codex 서버를 추가합니다.
+
+```json
+{
+  "mcpServers": {
+    "codex": {
+      "command": "codex",
+      "args": ["mcp-server"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+**2단계: Claude Code에서 Codex 도구 호출**
+
+등록 후 Claude Code 세션 안에서 Codex를 도구로 활용할 수 있습니다.
+
+```
+# Claude Code TUI에서
+/mcp
+
+# 또는 프롬프트에서 직접
+"codex 도구를 써서 src/api.ts의 성능 최적화 방안을 분석해 줘"
+```
+
+<ConceptCard title="agent-to-agent 워크플로 예시">
+다음은 Claude Opus(분석·계획)와 Codex(구현)를 역할 분담시키는 패턴입니다.
+
+1. **Claude Opus** : 아키텍처 분석, 리팩터링 계획 수립
+2. **Codex (MCP 서버로 호출)** : 계획에 따른 코드 변경 실행
+3. **Claude Opus** : 변경된 코드 검토, 추가 지시
+
+이 패턴은 추론 비용이 높은 작업은 Claude에, 코드 수정 실행은 Codex에 맡겨 비용과 속도를 최적화합니다.
+</ConceptCard>
+
+## Codex에서 다른 MCP 서버 사용
+
+반대 방향도 가능합니다. Codex가 MCP 클라이언트가 되어 외부 MCP 서버를 호출하는 구성입니다. `config.toml`에 MCP 서버를 등록하면 됩니다.
+
+```toml
+# ~/.codex/config.toml
+
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_TOKEN = "${GITHUB_TOKEN}" }
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp/workspace"]
+enabled = true
+```
+
+## Claude Code MCP 구성과의 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code MCP**
+  - `~/.claude.json` 또는 `.mcp.json` 의 `mcpServers` 키에 서버 등록
+  - Claude Code 자체를 MCP 서버로 노출하는 기능 없음
+  - 외부 MCP 서버를 클라이언트로 호출하는 구조만 지원
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex MCP**
+  - `config.toml` 의 `[mcp_servers.<id>]` 섹션에 서버 등록
+  - `codex mcp-server` 로 **Codex 자체를 MCP 서버로 노출** 가능
+  - Claude Code 등 다른 에이전트가 Codex를 도구로 호출 가능
+  - `codex plugin marketplace` 로 MCP 기반 플러그인 검색 가능
+
+  </Fragment>
+</Compare>
+
+## 핵심 정리
+
+- `codex mcp-server` 명령으로 Codex를 MCP 서버로 노출할 수 있습니다
+- 다른 MCP 클라이언트(Claude Code, 다른 에이전트 등)가 Codex를 도구로 호출할 수 있습니다
+- Claude Code의 `.mcp.json` 에 Codex를 등록하면 **Claude + Codex 역할 분담** 워크플로를 구성할 수 있습니다
+- 반대로 Codex가 `config.toml`의 `[mcp_servers]` 로 외부 MCP 서버를 클라이언트로 호출할 수도 있습니다
+- **실험적 기능** 이므로 프로덕션 사용 시 API 변경 가능성을 고려하세요
+- Claude Code에는 자신을 MCP 서버로 노출하는 기능이 없어 이 구조는 Codex 고유의 강점입니다
+
+<Quiz client:load section="09" />

@@ -1,0 +1,168 @@
+---
+title: CI/비대화형 실행
+description: Claude의 claude -p 와 Codex의 codex exec 를 비교하고 GitHub Actions 통합 패턴을 익힙니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "codex exec 와 주요 플래그를 사용해 비대화형 CI 작업을 구성할 수 있다"
+  - "GitHub Actions에서 Codex를 실행하는 워크플로를 작성할 수 있다"
+prerequisites:
+  - "07-01 코드 작성 흐름 챕터 읽기"
+  - "GitHub Actions 기본 사용 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 비대화형 모드의 역할
+
+CI 파이프라인이나 스크립트에서 AI 에이전트를 실행할 때는 사용자 입력 없이 완전 자동으로 작업이 완료되어야 합니다. Claude Code는 `claude -p "..."` 로 단일 프롬프트를 실행했고, Codex는 `codex exec` 명령으로 동일한 역할을 합니다.
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code**
+  - `claude -p "린트 오류 수정해"` 비대화형 실행
+  - `claude -c` 계속 이어서 실행
+  - `claude -r <id>` 세션 ID로 재개
+  - `--output-format json` JSON 출력
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex**
+  - `codex exec "린트 오류 수정해"` (alias `codex e`)
+  - `codex exec resume --last "계속해"` 마지막 세션 재개
+  - `--ask-for-approval never` 승인 없이 자동 실행
+  - `--json` JSONL 출력
+
+  </Fragment>
+</Compare>
+
+## codex exec 주요 플래그
+
+```bash
+# 기본 실행
+codex exec "테스트를 모두 통과하도록 수정해 줘"
+codex e "테스트를 모두 통과하도록 수정해 줘"   # alias
+
+# 승인 없이 자동 실행
+codex exec --ask-for-approval never "린트 오류 수정해"
+
+# JSONL 형식으로 출력 (파이프라인 처리용)
+codex exec --json "의존성 취약점을 분석해 줘"
+
+# 마지막 세션 이어서 실행
+codex exec resume --last "방금 수정한 내용에 테스트도 추가해 줘"
+
+# sandbox와 함께 사용
+codex exec -s workspace-write -a never "자동 포맷팅 실행해"
+```
+
+:::note[참고]
+`--ask-for-approval never` 는 config.toml의 `approval_policy = "never"` 와 동일합니다. CI 환경에서는 config.toml에 고정하거나 환경 변수로 주입하는 것이 일관성 있습니다.
+:::
+
+## JSONL 출력 처리
+
+`--json` 플래그를 사용하면 각 이벤트가 JSONL(줄 구분 JSON) 형식으로 출력됩니다. 파이프라인에서 결과를 파싱하거나 로깅할 때 유용합니다.
+
+```bash
+codex exec --json "변경 사항 요약해 줘" | jq '.content // empty'
+```
+
+출력 예시:
+
+```json
+{"type":"message","role":"assistant","content":"다음 파일이 변경되었습니다..."}
+{"type":"tool_use","name":"Bash","input":{"command":"git diff --stat"}}
+{"type":"tool_result","content":"3 files changed, 42 insertions(+), 8 deletions(-)"}
+```
+
+## GitHub Actions 통합
+
+```yaml
+# .github/workflows/codex-review.yml
+name: Codex 자동 리뷰
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Codex CLI 설치
+        run: npm install -g @openai/codex
+
+      - name: PR 코드 리뷰
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          codex exec \
+            --ask-for-approval never \
+            -s read-only \
+            --json \
+            "이 PR의 변경 사항을 검토하고 잠재적 문제를 보고해 줘" \
+            | tee review-output.jsonl
+
+      - name: 리뷰 결과 코멘트
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const lines = fs.readFileSync('review-output.jsonl', 'utf8')
+              .split('\n').filter(Boolean);
+            const messages = lines
+              .map(l => JSON.parse(l))
+              .filter(e => e.type === 'message' && e.role === 'assistant')
+              .map(e => e.content)
+              .join('\n');
+            if (messages) {
+              github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `## Codex 자동 리뷰\n\n${messages}`
+              });
+            }
+```
+
+:::tip[팁]
+CI 환경에서는 `approval_policy = "never"` 와 `sandbox_mode = "read-only"` 를 함께 사용하는 것이 안전합니다. 읽기 전용 분석은 코드베이스에 아무 영향도 주지 않습니다.
+:::
+
+<ConceptCard title="원격 실행: app-server">
+
+로컬 Codex를 원격에서 실행해야 하는 경우 `app-server` 를 사용합니다.
+
+```bash
+# 서버 시작
+codex app-server --listen ws://0.0.0.0:8080
+
+# 원격 연결
+codex --remote ws://your-server:8080 "작업 실행해 줘"
+```
+
+GitHub Actions 러너 대신 전용 서버를 두고 싶을 때 활용할 수 있습니다.
+
+</ConceptCard>
+
+## 핵심 정리
+
+- **`codex exec`** (alias `codex e`) 가 `claude -p` 에 대응하는 비대화형 실행 명령입니다
+- **`--ask-for-approval never`** 로 CI 환경에서 사람 개입 없이 완전 자동 실행합니다
+- **`--json`** 플래그는 JSONL 형식으로 출력해 파이프라인 처리에 적합합니다
+- **`codex exec resume --last`** 로 마지막 세션을 이어서 다단계 작업을 구성합니다
+- GitHub Actions에서는 `read-only` sandbox와 `never` approval 조합이 가장 안전합니다
+- 원격 실행이 필요하면 `codex app-server` 와 `--remote` 플래그를 사용합니다

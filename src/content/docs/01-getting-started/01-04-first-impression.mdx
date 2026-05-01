@@ -1,0 +1,184 @@
+---
+title: Claude Code 사용자가 마주할 첫 인상
+description: TOML 설정, AGENTS.md, $skill-name 호출, sandbox 자동 적용 등 Codex의 첫 경험을 안내합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "Codex를 처음 실행했을 때 Claude Code와 다른 점을 즉시 파악할 수 있다"
+  - "TOML 설정, AGENTS.md, sandbox, skill 호출의 기본 동작을 설명할 수 있다"
+prerequisites:
+  - "01-02 Codex 제품 라인업"
+  - "Claude Code CLAUDE.md, settings.json 사용 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 첫 실행의 차이
+
+`claude` 를 처음 실행했을 때의 경험과 `codex` 를 처음 실행했을 때의 경험은 표면적으로 비슷합니다. 둘 다 터미널 TUI(텍스트 UI)가 열립니다. 하지만 몇 가지 즉각적인 차이가 눈에 띕니다.
+
+## TOML 설정 파일
+
+Claude Code는 **JSON** 설정을 사용합니다. Codex는 **TOML** 을 사용합니다.
+
+<Compare>
+  <Fragment slot="left">
+```json
+// ~/.claude/settings.json
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": ["Bash(npm run *)"],
+    "deny": ["Bash(curl *)"]
+  }
+}
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```toml
+# ~/.codex/config.toml
+model = "gpt-5.4"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[shell]
+login_shell_allowed = true
+```
+
+  </Fragment>
+</Compare>
+
+TOML의 주요 특징:
+- 주석은 `#` 으로 시작
+- 섹션은 `[섹션명]` 으로 구분
+- 배열은 `[[배열섹션]]` (double bracket)
+- 문자열은 큰따옴표, 숫자는 따옴표 없음
+
+## AGENTS.md — Codex의 CLAUDE.md
+
+Claude Code에서 `CLAUDE.md` 가 에이전트에게 전달되는 지침 파일이라면, Codex에서는 `AGENTS.md` 가 그 역할을 합니다.
+
+<Compare>
+  <Fragment slot="left">
+파일 위치 (우선순위 순):
+1. `~/.claude/CLAUDE.md` (글로벌)
+2. `./CLAUDE.md` 또는 `./.claude/CLAUDE.md` (프로젝트)
+3. `./CLAUDE.local.md` (로컬 오버라이드)
+
+  </Fragment>
+  <Fragment slot="right">
+파일 위치 (우선순위 순):
+1. `~/.codex/AGENTS.override.md` (글로벌 오버라이드)
+2. `~/.codex/AGENTS.md` (글로벌)
+3. 프로젝트 루트~CWD 트리의 `AGENTS.override.md` / `AGENTS.md`
+
+  </Fragment>
+</Compare>
+
+:::note[참고]
+Codex는 루트에서 CWD 방향으로 모든 `AGENTS.md` 를 찾아 **concat** 합니다. CWD에 가까운 파일의 내용이 뒤에 붙으므로 실질적으로 우선됩니다. 기본 최대 크기는 `project_doc_max_bytes = 32768` (32KiB)입니다.
+:::
+
+폴백 파일명을 커스텀할 수도 있습니다.
+
+```toml
+# ~/.codex/config.toml
+project_doc_fallback_filenames = ["TEAM_GUIDE.md", ".agents.md"]
+```
+
+## Sandbox 자동 적용
+
+Claude Code는 기본적으로 권한을 하나씩 물어봅니다 (`default` 모드). Codex는 처음부터 **sandbox** 가 활성화됩니다.
+
+```toml
+# 기본값 (명시하지 않아도 이렇게 동작)
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+```
+
+| 설정 | 의미 |
+|------|------|
+| `approval_policy = "untrusted"` | 모든 작업 승인 필요 |
+| `approval_policy = "on-request"` | 에이전트가 필요할 때 요청 (기본값) |
+| `approval_policy = "never"` | 승인 없이 자동 실행 |
+| `approval_policy = "granular"` | 세분화된 규칙 기반 |
+| `sandbox_mode = "read-only"` | 파일 읽기만 허용 |
+| `sandbox_mode = "workspace-write"` | 작업 디렉토리 쓰기 허용 (기본값) |
+| `sandbox_mode = "danger-full-access"` | 모든 접근 허용 |
+
+:::caution[주의]
+`--dangerously-bypass-approvals-and-sandbox` (또는 `--yolo`) 플래그는 모든 승인과 sandbox를 우회합니다. 프로덕션 환경에서는 사용하지 마세요.
+:::
+
+## $skill-name 호출
+
+Claude Code의 `/slash-command` 에 대응하는 Codex의 skill 호출은 **`$skill-name`** 형태입니다.
+
+<Compare>
+  <Fragment slot="left">
+```
+# Claude Code: 슬래시 커맨드
+/model
+/memory
+/permissions
+/mcp
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```
+# Codex: 슬래시 커맨드 (TUI 내)
+/model
+/permissions
+/agent
+/review
+
+# Codex: skill 호출 (프롬프트에 입력)
+$linear
+$imagegen
+$skill-creator
+```
+
+  </Fragment>
+</Compare>
+
+<ConceptCard title="암시적 skill 호출이란?">
+Codex는 프롬프트 내용을 분석하여 관련 skill을 자동으로 호출할 수 있습니다. 예를 들어 "Linear 이슈를 만들어 줘"라고 하면 `$linear` skill이 description 매칭으로 자동 실행됩니다.
+
+이 동작을 끄려면 해당 skill의 `agents/openai.yaml` 에 다음을 추가합니다:
+```yaml
+policy:
+  allow_implicit_invocation: false
+```
+</ConceptCard>
+
+## 세션 디렉토리와 로그
+
+Claude Code와 Codex 모두 세션 히스토리를 저장하지만 위치가 다릅니다.
+
+| 항목 | Claude Code | Codex |
+|------|-------------|-------|
+| 홈 디렉토리 | `~/.claude/` | `~/.codex/` (환경변수 `CODEX_HOME`) |
+| 글로벌 설정 | `~/.claude/settings.json` | `~/.codex/config.toml` |
+| 세션 저장 | 내부 관리 | `~/.codex/sessions/` |
+| 로그 | — | `~/.codex/log/codex-tui.log` |
+| 히스토리 | — | `~/.codex/history.jsonl` |
+
+## 핵심 정리
+
+- Codex 설정은 **TOML** 형식 (`~/.codex/config.toml`)입니다. JSON이 아닙니다
+- `CLAUDE.md` 에 대응하는 파일은 **`AGENTS.md`** 입니다. 위치 우선순위가 다릅니다
+- Codex는 기본적으로 **sandbox** 가 활성화됩니다 (`workspace-write` + `on-request`)
+- skill 호출은 프롬프트에 **`$skill-name`** 을 입력하거나, description 매칭으로 자동 호출됩니다
+- `--yolo` 플래그는 모든 sandbox와 승인을 우회하므로 신중하게 사용해야 합니다
+- 세션·로그 파일은 `~/.codex/` 아래에 저장됩니다

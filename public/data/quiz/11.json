@@ -1,0 +1,146 @@
+[
+  {
+    "id": "q1",
+    "question": "Codex 실행 시 'gpt-5.5 requires ChatGPT authentication' 오류의 해결 방법은?",
+    "options": [
+      "OPENAI_API_KEY를 재발급받아 환경 변수로 설정합니다.",
+      "ChatGPT 계정으로 codex auth login을 실행하거나 gpt-5.4로 모델을 변경합니다.",
+      "Codex를 재설치합니다.",
+      "Pro 플랜으로 업그레이드합니다."
+    ],
+    "answer": 1,
+    "explanation": "gpt-5.5는 ChatGPT 계정 인증만 지원합니다. ChatGPT 계정으로 로그인하거나, API 키를 계속 사용하려면 config.toml에서 model = \"gpt-5.4\"로 변경해야 합니다."
+  },
+  {
+    "id": "q2",
+    "question": "Hooks가 설정대로 동작하지 않을 때 가장 먼저 확인해야 할 것은?",
+    "options": [
+      "hooks.json 파일의 JSON 문법 오류",
+      "config.toml에 features.codex_hooks = true가 설정되어 있는지",
+      "Codex 버전이 최신인지",
+      "훅 스크립트에 실행 권한이 있는지"
+    ],
+    "answer": 1,
+    "explanation": "Hooks는 features.codex_hooks = true 게이트가 활성화되어야 동작합니다. 이 설정 없이는 올바른 hooks.json이나 config.toml [hooks] 섹션이 있어도 동작하지 않습니다."
+  },
+  {
+    "id": "q3",
+    "question": "프로젝트의 .codex/config.toml이 로드되지 않을 때의 원인은?",
+    "options": [
+      "TOML 파일에 주석이 포함되어 있기 때문입니다.",
+      "프로젝트가 trusted 상태가 아니기 때문입니다.",
+      "config.toml 파일명이 잘못되었기 때문입니다.",
+      "프로젝트 config.toml은 지원하지 않기 때문입니다."
+    ],
+    "answer": 1,
+    "explanation": "프로젝트 .codex/config.toml은 해당 프로젝트가 trusted 상태일 때만 로드됩니다. 신뢰하지 않은 프로젝트의 설정은 보안상 자동 적용되지 않습니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex에서 Skills가 자동으로 인식되지 않을 때 확인해야 할 경로는?",
+    "options": [
+      "~/.codex/skills/ 디렉토리에 스킬이 있는지",
+      "$HOME/.agents/skills/ 또는 $REPO_ROOT/.agents/skills/에 스킬이 있는지",
+      ".claude/skills/ 디렉토리에 스킬이 있는지",
+      "~/.openai/skills/ 디렉토리에 스킬이 있는지"
+    ],
+    "answer": 1,
+    "explanation": "Codex Skills 스캔 경로는 SYSTEM(번들), ADMIN(/etc/codex/skills/), USER($HOME/.agents/skills/), REPO root($REPO_ROOT/.agents/skills/), REPO CWD($CWD/.agents/skills/)입니다. .codex/skills/는 스캔하지 않습니다."
+  },
+  {
+    "id": "q5",
+    "question": "Codex TUI에서 이전 명령어 히스토리를 검색하는 단축키는?",
+    "options": [
+      "Ctrl+H",
+      "Ctrl+F",
+      "Ctrl+R",
+      "Ctrl+S"
+    ],
+    "answer": 2,
+    "explanation": "Ctrl+R로 히스토리를 검색할 수 있습니다. Ctrl+L은 화면 클리어, Ctrl+O(/copy)는 클립보드 복사, Up/Down은 드래프트 탐색입니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex 디버깅 시 로그를 확인하는 파일 경로는?",
+    "options": [
+      "~/.codex/debug.log",
+      "~/.codex/log/codex-tui.log",
+      "/var/log/codex/error.log",
+      "~/.codex/errors.jsonl"
+    ],
+    "answer": 1,
+    "explanation": "Codex TUI의 로그는 ~/.codex/log/codex-tui.log에 저장됩니다. 예상치 못한 동작이나 오류 발생 시 이 파일을 확인하면 원인 파악에 도움이 됩니다."
+  },
+  {
+    "id": "q7",
+    "question": "AGENTS.md 내용이 너무 길어 잘리는 현상의 원인과 해결책은?",
+    "options": [
+      "AGENTS.md 파일은 1000자를 초과할 수 없으며, 내용을 줄여야 합니다.",
+      "project_doc_max_bytes 기본값(32768)을 초과하므로, 값을 늘리거나 내용을 분산합니다.",
+      "여러 AGENTS.md 파일을 사용할 수 없으므로 하나로 통합해야 합니다.",
+      "AGENTS.md는 ASCII 문자만 지원하므로 한국어 사용이 제한됩니다."
+    ],
+    "answer": 1,
+    "explanation": "project_doc_max_bytes의 기본값은 32768 (32KiB)입니다. 이를 초과하면 내용이 잘립니다. config.toml에서 값을 늘리거나, 중요도가 낮은 내용을 별도 파일로 분산하는 방법으로 해결합니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex에서 Subagent가 생성되지 않을 때 확인해야 할 config.toml 설정은?",
+    "options": [
+      "features.subagents = true",
+      "features.multi_agent = true (기본값이므로 명시적으로 false로 설정되었는지 확인)",
+      "agents.enabled = true",
+      "multi_agent.allow = true"
+    ],
+    "answer": 1,
+    "explanation": "Subagents는 features.multi_agent = true가 기본값입니다. 만약 이 값이 명시적으로 false로 설정되어 있다면 Subagent가 동작하지 않습니다. 또한 max_threads, max_depth 한도도 확인해야 합니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex 관련 공식 문서의 올바른 기준 URL은?",
+    "options": [
+      "docs.openai.com/codex",
+      "developers.openai.com/codex",
+      "openai.com/docs/codex",
+      "api.openai.com/codex/docs"
+    ],
+    "answer": 1,
+    "explanation": "Codex 공식 문서는 developers.openai.com/codex에 있습니다. CLI 레퍼런스(/codex/cli/reference), 설정 레퍼런스(/codex/config-reference), 모델(/codex/models) 등 세부 문서가 이 URL 하위에 있습니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex 마이그레이션 체크리스트에서 Skills 경로 확인 시 주의해야 할 사항은?",
+    "options": [
+      "스킬을 ~/.codex/skills/에 배치했는지 확인합니다.",
+      "스킬을 $HOME/.agents/skills/에 배치했는지 확인합니다. (.codex/skills/가 아님)",
+      "스킬을 ~/.claude/skills/에서 그대로 복사해도 동작합니다.",
+      "Skills 기능은 Pro 플랜에서만 사용 가능합니다."
+    ],
+    "answer": 1,
+    "explanation": "가장 흔한 실수 중 하나는 스킬을 .codex/skills/에 배치하는 것입니다. Codex는 $HOME/.agents/skills/ 또는 .agents/skills/ 경로를 스캔합니다. .codex/skills/는 스캔 대상이 아닙니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex에서 approval_policy로 on-failure 대신 사용해야 하는 권장 값은?",
+    "options": [
+      "untrusted",
+      "on-request",
+      "never",
+      "granular"
+    ],
+    "answer": 1,
+    "explanation": "on-failure는 deprecated되었으며 on-request로 대체되었습니다. 새 프로젝트나 마이그레이션 시 approval_policy = \"on-request\"를 사용하는 것이 권장됩니다."
+  },
+  {
+    "id": "q12",
+    "question": "Codex CLI의 오픈소스 저장소 URL은?",
+    "options": [
+      "github.com/openai/codex-cli",
+      "github.com/openai/codex",
+      "github.com/microsoft/codex",
+      "github.com/openai/openai-codex"
+    ],
+    "answer": 1,
+    "explanation": "Codex CLI는 Rust로 작성된 오픈소스 프로젝트이며 github.com/openai/codex에서 소스 코드를 확인하고 이슈를 제보할 수 있습니다."
+  }
+]

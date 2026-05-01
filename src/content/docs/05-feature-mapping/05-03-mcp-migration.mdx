@@ -1,0 +1,176 @@
+---
+title: MCP 서버 마이그레이션
+description: Claude Code의 mcpServers JSON 설정을 Codex의 TOML 형식으로 변환하는 방법을 안내합니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "mcpServers JSON을 Codex config.toml의 mcp_servers TOML로 변환할 수 있다"
+  - "Codex MCP 관련 CLI 명령어를 사용할 수 있다"
+prerequisites:
+  - "Claude Code MCP 서버 설정 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+
+## Claude Code의 MCP 설정 형식
+
+Claude Code는 `~/.claude.json` 또는 프로젝트 루트의 `.mcp.json` 파일에 `mcpServers` 키로 MCP 서버를 정의합니다. 형식은 JSON입니다.
+
+```json
+{
+  "mcpServers": {
+    "linear": {
+      "command": "npx",
+      "args": ["-y", "@linear/mcp-server"],
+      "env": {
+        "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}
+```
+
+## Codex의 MCP 설정 형식
+
+Codex는 `~/.codex/config.toml` 또는 프로젝트 `.codex/config.toml` 에 `[mcp_servers.<id>]` 섹션으로 MCP 서버를 정의합니다. 형식은 TOML입니다.
+
+```toml
+[mcp_servers.linear]
+command = "npx"
+args = ["-y", "@linear/mcp-server"]
+
+[mcp_servers.linear.env]
+LINEAR_API_KEY = "${LINEAR_API_KEY}"
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+```
+
+## 키 매핑 표
+
+| Claude Code (JSON) | Codex (TOML) | 설명 |
+|--------------------|--------------|------|
+| `mcpServers.<id>` | `[mcp_servers.<id>]` | 서버 ID |
+| `command` | `command` | 실행 명령 |
+| `args` | `args` | 인자 배열 |
+| `env` | `[mcp_servers.<id>.env]` | 환경 변수 |
+| — | `cwd` | 작업 디렉토리 (Codex 전용) |
+| — | `enabled` | 활성화 여부 (Codex 전용) |
+| — | `enabled_tools` | 허용할 도구 목록 (Codex 전용) |
+| — | `disabled_tools` | 비활성화할 도구 목록 (Codex 전용) |
+| — | `bearer_token_env_var` | HTTP Bearer 토큰 환경 변수명 (Codex 전용) |
+
+## 변환 예시: 실제 프로젝트
+
+<Compare>
+  <Fragment slot="left">
+  **`.mcp.json` (Claude Code)**
+  ```json
+  {
+    "mcpServers": {
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+        }
+      },
+      "postgres": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-postgres",
+          "postgresql://localhost/mydb"
+        ]
+      }
+    }
+  }
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **`.codex/config.toml` (Codex)**
+  ```toml
+  [mcp_servers.github]
+  command = "npx"
+  args = ["-y", "@modelcontextprotocol/server-github"]
+
+  [mcp_servers.github.env]
+  GITHUB_TOKEN = "${GITHUB_TOKEN}"
+
+  [mcp_servers.postgres]
+  command = "npx"
+  args = [
+    "-y",
+    "@modelcontextprotocol/server-postgres",
+    "postgresql://localhost/mydb"
+  ]
+  ```
+
+  </Fragment>
+</Compare>
+
+## Codex 전용 옵션
+
+### enabled / enabled_tools / disabled_tools
+
+Codex는 서버 전체를 비활성화하거나, 특정 도구만 허용·차단할 수 있습니다.
+
+```toml
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/"]
+enabled = true
+enabled_tools = ["read_file", "list_directory"]
+# disabled_tools = ["write_file", "delete_file"]
+```
+
+### bearer_token_env_var
+
+HTTP 기반 MCP 서버에 Bearer 토큰 인증이 필요한 경우 사용합니다.
+
+```toml
+[mcp_servers.my-http-server]
+command = "curl"
+args = ["https://my-mcp-server.example.com"]
+bearer_token_env_var = "MY_SERVER_TOKEN"
+```
+
+## MCP 관리 CLI 명령어
+
+Codex는 MCP 서버를 관리하는 전용 CLI 명령어를 제공합니다.
+
+```bash
+codex mcp                    # MCP 서버 목록 및 상태 확인 (Experimental)
+codex mcp-server             # Codex 자체를 MCP 서버로 노출
+codex plugin marketplace     # MCP 플러그인 마켓플레이스 탐색
+```
+
+:::note[참고]
+`codex mcp` 는 2026-05 기준 Experimental 기능입니다. 인터페이스가 변경될 수 있으므로 공식 문서를 확인하세요.
+:::
+
+:::tip[팁]
+팀 단위로 MCP 설정을 공유할 때는 프로젝트 `.codex/config.toml` 에 `[mcp_servers.*]` 섹션을 추가하고 git에 커밋하면 됩니다. 단, API 키 등 민감한 값은 환경 변수 참조(`${VAR}`)를 사용해야 합니다.
+:::
+
+## 핵심 정리
+
+- Claude Code의 `mcpServers` JSON은 Codex의 `[mcp_servers.<id>]` TOML로 변환합니다
+- `command`, `args` 키는 그대로 사용하며, `env` 는 별도 서브섹션 `[mcp_servers.<id>.env]` 로 이동합니다
+- Codex는 `enabled`, `enabled_tools`, `disabled_tools` 로 서버 및 도구 단위 제어가 가능합니다
+- `codex mcp` 로 서버 상태를 확인하고, `codex mcp-server` 로 Codex 자체를 MCP 서버로 노출할 수 있습니다
+- 팀 공유 설정은 프로젝트 `.codex/config.toml` 에, 민감한 값은 반드시 환경 변수로 분리합니다

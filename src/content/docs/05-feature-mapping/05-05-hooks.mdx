@@ -1,0 +1,207 @@
+---
+title: Hooks 마이그레이션
+description: Claude Code의 settings.json hooks를 Codex의 hooks.json 또는 config.toml hooks 형식으로 변환합니다.
+sidebar:
+  order: 5
+learning_objectives:
+  - "Claude Code hooks를 Codex hooks 형식으로 변환할 수 있다"
+  - "Codex hooks의 활성화 요건과 이벤트 차이를 설명할 수 있다"
+prerequisites:
+  - "Claude Code hooks 설정 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Advanced"
+    url: "https://developers.openai.com/codex/config-advanced"
+    accessed: "2026-05-01"
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## Claude Code의 Hooks 체계
+
+Claude Code는 `~/.claude/settings.json` 또는 `.claude/settings.json` 의 `hooks` 키에 훅을 정의합니다. 지원 이벤트는 다음과 같습니다.
+
+| 이벤트 | 발생 시점 |
+|--------|-----------|
+| `PreToolUse` | 도구 실행 직전 |
+| `PostToolUse` | 도구 실행 완료 후 |
+| `PostToolUseFailure` | 도구 실행 실패 후 |
+| `Stop` | 세션 종료 시 |
+| `SessionStart` | 세션 시작 시 |
+| `SessionEnd` | 세션 종료 시 |
+| `UserPromptSubmit` | 사용자 프롬프트 제출 시 |
+| `PermissionRequest` | 권한 요청 시 |
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/validate.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "prettier --write $TOOL_OUTPUT_FILE"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Codex의 Hooks 체계
+
+Codex hooks는 `features.codex_hooks = true` 게이트를 먼저 활성화해야 합니다. 이후 `~/.codex/hooks.json` 파일이나 `config.toml` 의 `[hooks]` 인라인 섹션으로 정의합니다.
+
+:::caution[주의]
+`features.codex_hooks = true` 를 설정하지 않으면 hooks 설정이 있어도 실행되지 않습니다. 반드시 먼저 활성화하세요.
+:::
+
+```toml
+# ~/.codex/config.toml
+[features]
+codex_hooks = true
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 .codex/hooks/policy.py"
+timeout = 30
+statusMessage = "Bash 명령 정책 검사 중"
+```
+
+또는 별도 `~/.codex/hooks.json` 파일로 분리할 수 있습니다.
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "^Bash$",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/usr/bin/python3 .codex/hooks/policy.py",
+          "timeout": 30,
+          "statusMessage": "Bash 명령 정책 검사 중"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 변환 예시
+
+<Compare>
+  <Fragment slot="left">
+  **`.claude/settings.json` (Claude Code)**
+  ```json
+  {
+    "hooks": {
+      "PostToolUse": [
+        {
+          "matcher": "Write",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "prettier --write $FILE"
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node scripts/audit.js"
+            }
+          ]
+        }
+      ]
+    }
+  }
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **`.codex/config.toml` (Codex)**
+  ```toml
+  [features]
+  codex_hooks = true
+
+  [[hooks.PostToolUse]]
+  matcher = "^Write$"
+
+  [[hooks.PostToolUse.hooks]]
+  type = "command"
+  command = "prettier --write $FILE"
+  timeout = 10
+
+  [[hooks.Stop]]
+
+  [[hooks.Stop.hooks]]
+  type = "command"
+  command = "node scripts/audit.js"
+  timeout = 30
+  ```
+
+  </Fragment>
+</Compare>
+
+## 이벤트 차이
+
+Claude Code와 Codex 모두 `PreToolUse` 를 지원하지만, Claude Code가 더 많은 이벤트를 제공합니다.
+
+| 이벤트 | Claude Code | Codex |
+|--------|-------------|-------|
+| `PreToolUse` | 지원 | 지원 |
+| `PostToolUse` | 지원 | 지원 (2026-05 기준 확인 필요) |
+| `PostToolUseFailure` | 지원 | 미지원 |
+| `SessionStart` | 지원 | 미지원 |
+| `SessionEnd` / `Stop` | 지원 | 지원 |
+| `UserPromptSubmit` | 지원 | 미지원 |
+| `PermissionRequest` | 지원 | 미지원 |
+
+:::note[참고]
+Codex hooks는 2026-05 기준 활발히 개발 중인 기능입니다. 지원 이벤트는 공식 문서에서 최신 상태를 확인하세요.
+:::
+
+## 프로젝트 신뢰(trust) 요건
+
+Codex는 프로젝트 `.codex/` 폴더의 hooks 설정이 **신뢰된(trusted) 프로젝트** 에서만 로드됩니다. 처음 `codex` 를 실행할 때 프로젝트 신뢰 여부를 확인하는 프롬프트가 나타납니다.
+
+<ConceptCard title="변환 시 고려사항">
+Claude Code hooks에서 Codex로 이전할 때 주의할 점이 있습니다.
+
+1. **`features.codex_hooks = true` 먼저 설정**: 이 플래그 없이는 hooks가 동작하지 않습니다.
+2. **matcher 정규식**: Codex는 `matcher` 에 정규식(`^Bash$`)을 사용합니다. Claude Code의 단순 문자열 매처와 다를 수 있습니다.
+3. **timeout 필드**: Codex hooks에는 `timeout` 필드를 명시하는 것이 권장됩니다.
+4. **환경 변수**: 훅 스크립트에서 사용하는 환경 변수 이름이 다를 수 있으므로 확인이 필요합니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- Codex hooks를 사용하려면 반드시 `features.codex_hooks = true` 를 먼저 활성화해야 합니다
+- 훅 정의는 `config.toml` 의 `[hooks]` 섹션 또는 별도 `hooks.json` 파일로 작성합니다
+- Claude Code는 8개 이벤트를 지원하지만, Codex는 현재 `PreToolUse`, `PostToolUse`, `Stop` 위주로 지원합니다
+- `matcher` 는 정규식 형식으로 작성하며, `timeout` 필드를 함께 명시하는 것이 권장됩니다
+- 프로젝트 `.codex/` 의 훅은 신뢰된 프로젝트에서만 로드되므로, 신뢰 설정을 먼저 확인하세요

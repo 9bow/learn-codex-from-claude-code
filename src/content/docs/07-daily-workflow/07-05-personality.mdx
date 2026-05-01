@@ -1,0 +1,121 @@
+---
+title: 협업 스타일 전환
+description: /personality 명령으로 Codex의 협업 스타일을 전환하고 작업 유형별 최적 모드를 선택하는 방법을 익힙니다.
+sidebar:
+  order: 5
+learning_objectives:
+  - "/personality 명령으로 concise와 conversational 모드를 상황에 맞게 전환할 수 있다"
+  - "작업 유형별 권장 협업 스타일을 설명할 수 있다"
+prerequisites:
+  - "07-01 코드 작성 흐름 챕터 읽기"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+## 왜 협업 스타일이 중요한가
+
+같은 모델, 같은 도구를 사용하더라도 에이전트가 응답하는 방식이 작업 흐름에 큰 영향을 미칩니다. 빠르게 코드를 작성할 때는 짧고 명확한 응답이 필요하지만, 복잡한 아키텍처를 논의할 때는 맥락을 풍부하게 설명해 주는 방식이 더 도움이 됩니다.
+
+Codex는 `/personality` 슬래시 커맨드로 이 스타일을 즉시 전환할 수 있습니다.
+
+## /personality 두 가지 모드
+
+```bash
+# TUI에서
+/personality
+# → concise·practical 또는 conversational·empathetic 선택
+```
+
+<Compare>
+  <Fragment slot="left">
+  **concise · practical**
+  - 응답이 짧고 핵심만 전달
+  - 코드 블록 중심, 설명 최소화
+  - 반복 확인 없이 바로 실행
+  - 빠른 반복 작업에 적합
+
+  </Fragment>
+  <Fragment slot="right">
+  **conversational · empathetic**
+  - 맥락과 이유를 함께 설명
+  - 트레이드오프와 대안을 제시
+  - 불확실한 부분은 먼저 질문
+  - 설계 논의, 학습, 리뷰에 적합
+
+  </Fragment>
+</Compare>
+
+## 작업 유형별 권장 모드
+
+| 작업 유형 | 권장 모드 | 이유 |
+|-----------|-----------|------|
+| 린트·포맷 수정 | concise | 빠른 반복, 설명 불필요 |
+| 버그 수정 | concise | 원인과 수정 코드만 필요 |
+| 리팩터링 검토 | conversational | 트레이드오프 논의 필요 |
+| 아키텍처 설계 | conversational | 맥락과 대안 탐색 필요 |
+| 코드 리뷰 | conversational | 이유 있는 피드백 필요 |
+| CI 스크립트 작성 | concise | 실행 가능한 코드 중심 |
+| 새 기능 학습 | conversational | 개념 이해 우선 |
+
+:::tip[팁]
+세션 시작 시 바로 `/personality` 로 모드를 설정하면 이후 모든 응답에 일관되게 적용됩니다. 작업 중간에 변경해도 즉시 반영됩니다.
+:::
+
+## Claude Code와의 비교
+
+Claude Code에는 `/personality` 에 직접 대응하는 기능이 없습니다. 가장 유사한 방법은 `CLAUDE.md` 나 시스템 프롬프트에 출력 스타일 지침을 작성하는 것이었습니다.
+
+```markdown
+<!-- CLAUDE.md에 스타일 지침 추가 -->
+## 응답 스타일
+- 코드 수정 시 변경 이유 없이 코드만 제시
+- 질문 없이 최선의 판단으로 실행
+- 완료 후 한 줄 요약만 제공
+```
+
+Codex에서는 이를 `/personality` 한 번으로 즉시 전환할 수 있습니다. 다만 세션을 새로 시작하면 기본값으로 돌아오므로, 특정 스타일을 항상 유지하려면 `AGENTS.md` 나 `developer_instructions` 에 지침을 포함하는 것이 좋습니다.
+
+<ConceptCard title="config.toml에 기본 스타일 고정하기">
+
+에이전트 정의 파일에 `developer_instructions` 를 통해 기본 응답 스타일을 고정할 수 있습니다.
+
+```toml
+# ~/.codex/agents/concise-worker.toml
+name = "concise-worker"
+description = "간결하고 실용적인 코드 작업 전용 에이전트"
+model = "gpt-5.4"
+developer_instructions = """
+응답은 항상 간결하게 유지하세요.
+코드 블록을 먼저 제시하고 설명은 최소화하세요.
+확인 없이 최선의 판단으로 즉시 실행하세요.
+"""
+```
+
+특정 프로젝트에서 항상 같은 스타일을 쓰고 싶다면 `.codex/agents/` 에 저장해 프로젝트 전용으로 사용할 수 있습니다.
+
+</ConceptCard>
+
+:::note[참고]
+`/personality` 설정은 현재 세션에만 적용됩니다. `codex resume` 으로 이전 세션을 재개하면 해당 세션의 마지막 personality 설정이 유지됩니다.
+:::
+
+## 핵심 정리
+
+- **`/personality`** 슬래시로 concise·practical 과 conversational·empathetic 두 모드를 즉시 전환합니다
+- **concise** 모드는 린트·버그 수정·CI 스크립트처럼 빠른 반복 작업에 적합합니다
+- **conversational** 모드는 아키텍처 설계·리뷰·학습처럼 맥락이 중요한 작업에 적합합니다
+- Claude Code에는 직접 대응하는 기능이 없으며, `CLAUDE.md` 에 스타일 지침을 작성하는 방식이 가장 유사합니다
+- 스타일을 영구적으로 고정하려면 `developer_instructions` 또는 `AGENTS.md` 에 지침을 포함하세요
+- `/personality` 는 세션 단위로 적용되며 새 세션에서는 기본값으로 초기화됩니다
+
+<Quiz client:load section="07" />

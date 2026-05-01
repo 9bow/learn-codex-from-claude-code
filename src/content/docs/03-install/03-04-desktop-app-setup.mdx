@@ -1,0 +1,109 @@
+---
+title: Desktop App 설치 및 첫 실행
+description: macOS/Windows용 Codex Desktop App 설치, CLI 세션 연동, 스킬 UI 첫인상을 안내합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "Codex Desktop App을 설치하고 첫 실행까지 진행할 수 있다"
+  - "Desktop App과 CLI 세션의 연동 방식을 이해한다"
+prerequisites:
+  - "Codex 인증 방식 이해 (ChatGPT 인증 권장)"
+estimated_minutes: 25
+references:
+  - title: "Introducing the Codex App"
+    url: "https://openai.com/index/introducing-the-codex-app/"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+Codex Desktop App은 2026년 3월 macOS로 출시된 후 Windows로 확장되었습니다. 단순한 채팅 인터페이스가 아니라 **멀티 에이전트 명령 센터** 로 설계되었으며, 여러 에이전트를 동시에 관리하고 diff를 검토하는 워크플로우에 최적화되어 있습니다.
+
+## 설치
+
+### macOS
+
+[openai.com/codex](https://openai.com/codex) 또는 Mac App Store에서 Codex App을 다운로드합니다.
+
+```bash
+# Homebrew Cask로도 설치 가능
+brew install --cask codex
+```
+
+### Windows
+
+Microsoft Store 또는 공식 사이트에서 설치 파일(`.exe`)을 다운로드하여 실행합니다.
+
+:::note[시스템 요구사항]
+macOS 13 Ventura 이상, Windows 10/11 (64-bit) 이상을 권장합니다.
+:::
+
+## 첫 실행
+
+앱을 처음 열면 인증 화면이 나타납니다.
+
+1. **ChatGPT 계정으로 로그인** 선택 (권장 — gpt-5.5 및 Cloud 기능 사용 가능)
+2. 브라우저에서 OpenAI OAuth 완료
+3. 앱으로 자동 복귀
+
+이미 CLI에서 ChatGPT 인증을 완료했다면 `~/.codex/`의 토큰을 재사용하므로 재로그인 없이 바로 시작됩니다.
+
+## CLI 세션과의 연동
+
+Desktop App과 CLI는 동일한 `~/.codex/` 디렉터리를 공유합니다.
+
+| 공유 항목 | 경로 |
+|-----------|------|
+| 설정 | `~/.codex/config.toml` |
+| 세션 기록 | `~/.codex/sessions/` |
+| 히스토리 | `~/.codex/history.jsonl` |
+| 스킬 | `$HOME/.agents/skills/` |
+
+CLI에서 시작한 세션을 Desktop App에서 `codex resume <SESSION_ID>`로 이어받거나, 반대로 App에서 시작한 세션을 CLI로 이어갈 수 있습니다.
+
+:::tip[워크트리 기본 지원]
+Desktop App은 각 에이전트가 **격리된 코드 복사본(워크트리)** 에서 작업합니다. 여러 에이전트가 동시에 다른 기능을 개발해도 로컬 git 브랜치에 영향을 주지 않으며 충돌이 발생하지 않습니다.
+:::
+
+## 주요 UI 기능
+
+### 멀티 에이전트 동시 관리
+
+좌측 패널에서 실행 중인 에이전트 스레드 목록을 확인하고 전환할 수 있습니다. 각 에이전트는 독립된 컨텍스트를 유지합니다.
+
+### Diff 검토 및 코멘트
+
+에이전트가 파일을 수정하면 앱 내 diff 뷰어에서 변경 내용을 검토할 수 있습니다. 코멘트를 남기고 에디터에서 바로 열기도 지원합니다.
+
+### Auto Tasks
+
+스케줄 기반 백그라운드 자동 작업을 설정할 수 있습니다. 예: 이슈 자동 분류, CI 실패 요약, 일일 릴리스 브리프 생성.
+
+## 스킬 UI 첫인상
+
+Desktop App은 **스킬 생성 및 관리 전용 UI** 를 제공합니다. CLI에서는 `$skill-name` 형태로 호출해야 했던 스킬을 앱에서는 카드 형태로 탐색하고 설치할 수 있습니다.
+
+```
+앱 내 스킬 탐색 경로:
+Skills 탭 → Browse → 카탈로그에서 선택 → Install
+```
+
+설치된 스킬은 `$HOME/.agents/skills/`에 저장되며 CLI에서도 즉시 사용 가능합니다.
+
+<ConceptCard title="/personality 명령">
+Desktop App에서 `/personality` 명령으로 에이전트 응답 스타일을 전환할 수 있습니다. `concise` 모드는 간결한 답변을, `conversational` 모드는 친근하고 풍부한 답변을 제공합니다. 작업 유형에 따라 전환하면 효율이 높아집니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- Codex Desktop App은 macOS와 Windows를 모두 지원하며 Homebrew Cask로도 설치 가능합니다
+- 첫 실행 시 ChatGPT 인증을 권장합니다 — gpt-5.5와 Cloud 기능 사용이 가능합니다
+- CLI와 동일한 `~/.codex/` 디렉터리를 공유하므로 세션과 설정이 자동으로 연동됩니다
+- 워크트리 기본 지원으로 여러 에이전트가 충돌 없이 동시 작업할 수 있습니다
+- 스킬 카드 UI, diff 검토, Auto Tasks 등 CLI에 없는 시각적 기능을 제공합니다
+
+<Quiz client:load section="03" />

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question": "Codex CLI를 설치하는 올바른 npm 명령어는?",
+    "options": [
+      "npm install -g @openai/codex",
+      "npm install -g openai-codex",
+      "npm install -g codex-cli",
+      "npm install -g @openai/cli"
+    ],
+    "answer": 0,
+    "explanation": "Codex CLI는 npm install -g @openai/codex 명령으로 설치합니다. 설치 후 codex 명령으로 실행할 수 있습니다."
+  },
+  {
+    "id": "q2",
+    "question": "GPT-5.5 모델을 Codex CLI에서 사용할 때 필요한 인증 방식은?",
+    "options": [
+      "OPENAI_API_KEY 환경변수만 지원합니다.",
+      "ChatGPT 계정 인증만 지원하며 API 키는 사용할 수 없습니다.",
+      "API 키와 ChatGPT 계정 인증 모두 지원합니다.",
+      "OAuth 2.0 토큰이 별도로 필요합니다."
+    ],
+    "answer": 1,
+    "explanation": "gpt-5.5는 ChatGPT 계정 인증(ChatGPT 로그인)만 지원하며 API 키(OPENAI_API_KEY)로는 사용할 수 없습니다. API 키 기반 작업에는 gpt-5.4 이하 모델을 사용해야 합니다."
+  },
+  {
+    "id": "q3",
+    "question": "Codex IDE 확장이 사용하는 설정 파일은?",
+    "options": [
+      "IDE 전용 별도 설정 파일",
+      "~/.codex/ide-config.toml",
+      "~/.codex/config.toml (CLI와 공유)",
+      ".vscode/codex.json"
+    ],
+    "answer": 2,
+    "explanation": "Codex IDE 확장(VS Code, JetBrains)은 CLI와 동일한 ~/.codex/config.toml을 공유합니다. 설정을 한 번만 하면 모든 Codex 도구에 적용됩니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex의 홈 디렉토리를 변경하는 환경 변수는?",
+    "options": [
+      "CODEX_DIR",
+      "CODEX_CONFIG_PATH",
+      "CODEX_HOME",
+      "OPENAI_CODEX_HOME"
+    ],
+    "answer": 2,
+    "explanation": "Codex 홈 디렉토리는 기본적으로 ~/.codex/이며, CODEX_HOME 환경 변수로 변경할 수 있습니다."
+  },
+  {
+    "id": "q5",
+    "question": "Claude Code의 VS Code 확장 ID는?",
+    "options": [
+      "anthropic.claude",
+      "anthropic.claude-code",
+      "claude.claude-code",
+      "anthropic.ai-assistant"
+    ],
+    "answer": 1,
+    "explanation": "Claude Code의 VS Code 확장 ID는 anthropic.claude-code입니다. JetBrains 플러그인도 별도로 제공됩니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex에서 Amazon Bedrock을 통해 모델을 사용하려면 config.toml에 설정해야 하는 키는?",
+    "options": [
+      "provider = \"amazon-bedrock\"",
+      "model_backend = \"bedrock\"",
+      "model_provider = \"amazon-bedrock\"",
+      "bedrock_enabled = true"
+    ],
+    "answer": 2,
+    "explanation": "config.toml에서 model_provider = \"amazon-bedrock\"으로 설정하면 Amazon Bedrock을 통해 모델을 사용할 수 있습니다."
+  },
+  {
+    "id": "q7",
+    "question": "Codex Desktop App이 지원하는 운영체제는?",
+    "options": [
+      "macOS만 지원합니다.",
+      "Linux와 macOS를 지원합니다.",
+      "macOS와 Windows를 지원합니다.",
+      "Windows만 지원합니다."
+    ],
+    "answer": 2,
+    "explanation": "Codex Desktop App은 macOS에 먼저 출시된 후 2026년 3월 4일에 Windows로 확장되었습니다. Linux는 공식 지원 대상이 아닙니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex CLI에서 특정 모델을 지정하는 플래그는?",
+    "options": [
+      "-model gpt-5.4",
+      "--model=gpt-5.4",
+      "-m gpt-5.4",
+      "--use-model gpt-5.4"
+    ],
+    "answer": 2,
+    "explanation": "Codex CLI에서 모델을 지정할 때는 -m 플래그를 사용합니다. 예: codex -m gpt-5.4 \"작업 내용\""
+  },
+  {
+    "id": "q9",
+    "question": "Claude Code의 프로젝트 수준 설정 파일 경로는?",
+    "options": [
+      ".claude/config.json",
+      ".claude/settings.json",
+      ".claude.json",
+      "claude.config.json"
+    ],
+    "answer": 1,
+    "explanation": "Claude Code의 프로젝트 수준 설정 파일은 .claude/settings.json입니다. 로컬 전용(git 미추적)은 .claude/settings.local.json을 사용합니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex TUI의 로그 파일 위치는?",
+    "options": [
+      "~/.codex/debug.log",
+      "~/.codex/log/codex-tui.log",
+      "~/.codex/sessions/current.log",
+      "/var/log/codex.log"
+    ],
+    "answer": 1,
+    "explanation": "Codex TUI의 로그는 ~/.codex/log/codex-tui.log에 저장됩니다. 문제 발생 시 이 파일을 확인하면 디버깅에 도움이 됩니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex에서 이미지 파일을 입력으로 제공하는 CLI 플래그는?",
+    "options": [
+      "--file img.png",
+      "--attach img.png",
+      "-i img.png 또는 --image img.png",
+      "--context img.png"
+    ],
+    "answer": 2,
+    "explanation": "이미지 입력은 codex -i screenshot.png \"...\" 또는 --image img1.png,img2.jpg 형태로 제공합니다. 여러 이미지를 쉼표로 구분하여 한 번에 전달할 수 있습니다."
+  }
+]

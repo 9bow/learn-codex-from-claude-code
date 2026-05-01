@@ -1,0 +1,28 @@
+---
+type Props = {
+  variant?: 'claude' | 'codex' | 'warn' | 'info' | 'success' | 'neutral';
+  text: string;
+};
+const { variant = 'neutral', text } = Astro.props;
+---
+<span class={`omc-badge omc-badge-${variant}`}>{text}</span>
+
+<style>
+.omc-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  vertical-align: middle;
+  margin: 0 0.15rem;
+  border: 1px solid transparent;
+}
+.omc-badge-claude   { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.4); }
+.omc-badge-codex    { background: rgba(16,163,127,0.15); color: #10a37f; border-color: rgba(16,163,127,0.4); }
+.omc-badge-warn     { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.4); }
+.omc-badge-info     { background: rgba(59,130,246,0.15); color: #60a5fa; border-color: rgba(59,130,246,0.4); }
+.omc-badge-success  { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.4); }
+.omc-badge-neutral  { background: var(--sl-color-gray-6, #334155); color: var(--sl-color-gray-2, #cbd5e1); border-color: var(--sl-color-gray-5, #475569); }
+</style>

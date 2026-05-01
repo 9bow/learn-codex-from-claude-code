@@ -1,0 +1,271 @@
+---
+title: Claude Code 스킬을 Codex 스킬로 변환하기
+description: Claude Code extension 스킬을 Agent Skills base spec 형식으로 단계별 변환하는 방법을 안내합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "Claude Code 스킬의 extension 필드를 식별하고 제거할 수 있다"
+  - "정책, MCP 의존성, UI 설정을 agents/openai.yaml로 이동할 수 있다"
+prerequisites:
+  - "Claude Code skills 작성 경험"
+  - "Agent Skills 표준 기초 (06-01 챕터)"
+estimated_minutes: 35
+references:
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+  - title: "Agent Skills Specification"
+    url: "https://agentskills.io/specification"
+    accessed: "2026-05-01"
+  - title: "Claude Code Skills"
+    url: "https://docs.anthropic.com/en/docs/claude-code/skills"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 변환 전에 알아야 할 것
+
+Claude Code 스킬과 Codex 스킬의 가장 큰 차이는 **frontmatter의 범위** 입니다. Claude Code는 모델 선택, 권한, 훅, 셸 명령, UI 설정 등 모든 것을 SKILL.md frontmatter에 담지만, Codex base spec은 `name` 과 `description` 만 SKILL.md에 둡니다. 나머지는 별도 파일로 분리합니다.
+
+변환은 다음 7단계로 진행합니다.
+
+## 1단계: 디렉토리 이동
+
+```bash
+# Claude Code 경로
+.claude/skills/my-skill/SKILL.md
+
+# Codex 경로로 이동
+.agents/skills/my-skill/SKILL.md
+```
+
+전역 스킬은 `~/.claude/skills/` 에서 `~/.agents/skills/` 로 이동합니다.
+
+## 2단계: frontmatter 축소
+
+Claude Code SKILL.md의 frontmatter에는 많은 extension 필드가 있습니다. Codex에서는 이 필드들을 제거하고 `name` 과 `description` 만 남깁니다.
+
+<Compare>
+  <Fragment slot="left">
+  **Before: Claude Code SKILL.md**
+  ```yaml
+  ---
+  name: code-review
+  description: 코드 리뷰를 수행합니다
+  model: claude-sonnet-4-6
+  effort: high
+  allowed-tools:
+    - Read
+    - Bash
+  user-invocable: true
+  disable-model-invocation: false
+  context: fork
+  paths:
+    - "src/**"
+  arguments:
+    - name: target
+      description: 리뷰할 파일 경로
+  hooks:
+    PreToolUse:
+      - matcher: Bash
+        command: echo "tool called"
+  shell: bash
+  ---
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **After: Codex SKILL.md**
+  ```yaml
+  ---
+  name: code-review
+  description: 코드 리뷰를 수행합니다
+  ---
+  ```
+
+  </Fragment>
+</Compare>
+
+제거하는 필드 목록:
+
+| 제거 필드 | 이동 위치 |
+|-----------|-----------|
+| `model` | 제거 (에이전트 설정으로) |
+| `effort` | 제거 |
+| `allowed-tools` | 제거 또는 `allowed-tools` (Experimental) |
+| `user-invocable` | `agents/openai.yaml` `policy` 섹션으로 |
+| `disable-model-invocation` | 제거 |
+| `context` | 제거 |
+| `paths` | 제거 |
+| `arguments` | 본문 자연어 지침으로 재작성 |
+| `hooks` | 제거 (별도 hooks 설정으로) |
+| `shell` | `scripts/` 폴더로 이동 |
+
+## 3단계: 정책을 agents/openai.yaml로 이동
+
+`user-invocable: false` 처럼 암시적 호출을 제어하던 설정은 `agents/openai.yaml` 의 `policy` 섹션으로 이동합니다.
+
+```yaml
+# .agents/skills/code-review/agents/openai.yaml
+policy:
+  allow_implicit_invocation: false   # true면 description 매칭으로 자동 호출
+```
+
+`allow_implicit_invocation: true` (기본값)이면 에이전트가 description을 보고 자동으로 스킬을 호출합니다. `false` 로 설정하면 사용자가 명시적으로 `$code-review` 를 입력해야만 호출됩니다.
+
+## 4단계: MCP 의존성을 agents/openai.yaml로 이동
+
+스킬이 특정 MCP 서버에 의존하는 경우, `agents/openai.yaml` 의 `dependencies.tools` 섹션으로 이동합니다.
+
+```yaml
+# .agents/skills/linear/agents/openai.yaml
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "linear"
+      transport: "streamable_http"
+      url: "https://mcp.linear.app/mcp"
+```
+
+## 5단계: $ARGUMENTS 자리표시자를 자연어 지침으로 재작성
+
+Claude Code 스킬에서는 `$ARGUMENTS` 로 사용자 입력을 받았습니다. Codex에서는 frontmatter `arguments` 필드가 없으므로, 본문에서 자연어로 입력 방식을 기술합니다.
+
+<Compare>
+  <Fragment slot="left">
+  **Before (Claude Code)**
+  ```markdown
+  ---
+  arguments:
+    - name: target
+      description: 리뷰할 파일 경로
+    - name: depth
+      description: 리뷰 깊이 (quick/full)
+  ---
+
+  $target 파일을 $depth 수준으로 리뷰합니다.
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **After (Codex)**
+  ```markdown
+  ---
+  name: code-review
+  description: 지정한 파일을 코드 리뷰합니다
+  ---
+
+  사용자가 리뷰할 파일 경로를 제공합니다.
+  리뷰 깊이(quick 또는 full)를 함께 지정할 수 있으며,
+  명시하지 않으면 full 리뷰를 수행합니다.
+  ```
+
+  </Fragment>
+</Compare>
+
+## 6단계: 동적 셸 인젝션을 scripts/로 이동
+
+Claude Code 스킬에서 `` !`command` `` 형식의 동적 인젝션을 사용했다면, 해당 로직을 `scripts/` 폴더의 스크립트로 분리하고 SKILL.md 본문에서 스크립트 경로를 참조합니다.
+
+```
+code-review/
+├── SKILL.md
+└── scripts/
+    └── get-diff.sh     # 이전에 !`git diff HEAD` 였던 부분
+```
+
+```markdown
+<!-- SKILL.md 본문 -->
+리뷰 전에 `scripts/get-diff.sh` 를 실행하여
+현재 변경 사항을 파악합니다.
+```
+
+## 7단계: UI 메타데이터를 agents/openai.yaml에 추가
+
+Codex Desktop App이나 Codex 웹에서 스킬이 표시되는 방식을 `interface` 블록으로 정의합니다.
+
+```yaml
+# .agents/skills/code-review/agents/openai.yaml
+interface:
+  display_name: "Code Review"
+  short_description: "코드 리뷰를 수행합니다"
+  icon_small: "./assets/review-icon.svg"
+  default_prompt: "현재 변경 사항을 리뷰해줘"
+policy:
+  allow_implicit_invocation: true
+```
+
+## 전체 변환 예시: Linear 스킬
+
+<Compare>
+  <Fragment slot="left">
+  **Before: `.claude/skills/linear/SKILL.md`**
+  ```markdown
+  ---
+  name: linear
+  description: Linear 이슈를 관리합니다
+  model: claude-sonnet-4-6
+  allowed-tools:
+    - mcp__linear__create_issue
+    - mcp__linear__list_issues
+  user-invocable: true
+  arguments:
+    - name: action
+      description: 수행할 작업
+  ---
+
+  Linear MCP를 사용하여 $action 작업을 수행합니다.
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **After: `.agents/skills/linear/SKILL.md`**
+  ```markdown
+  ---
+  name: linear
+  description: Linear 이슈를 생성하고 관리합니다
+  ---
+
+  Linear MCP 서버를 통해 이슈를 생성, 조회,
+  업데이트합니다. 사용자가 수행할 작업과
+  이슈 정보를 제공합니다.
+  ```
+
+  **`.agents/skills/linear/agents/openai.yaml`**
+  ```yaml
+  interface:
+    display_name: "Linear"
+    short_description: "Manage Linear issues in Codex"
+    icon_small: "./assets/linear-small.svg"
+    default_prompt: "Linear 이슈를 관리해줘"
+  policy:
+    allow_implicit_invocation: false
+  dependencies:
+    tools:
+      - type: "mcp"
+        value: "linear"
+        transport: "streamable_http"
+        url: "https://mcp.linear.app/mcp"
+  ```
+
+  </Fragment>
+</Compare>
+
+<ConceptCard title="agents/openai.yaml이 선택 사항인 이유">
+`agents/openai.yaml` 은 필수가 아닙니다. UI 표시, 호출 정책, MCP 의존성이 모두 기본값으로 충분한 단순 스킬이라면 SKILL.md만으로도 동작합니다. 복잡한 스킬일수록 `agents/openai.yaml` 의 가치가 커집니다.
+</ConceptCard>
+
+:::tip[팁]
+변환 후에는 `$skill-name` 을 Codex 프롬프트에 직접 입력하여 스킬이 올바르게 로드되는지 확인하세요. `/skills` 선택기에도 나타나야 합니다.
+:::
+
+## 핵심 정리
+
+- SKILL.md frontmatter는 `name` + `description` 두 필드만 남기고 나머지를 모두 제거합니다
+- 정책(`allow_implicit_invocation`)과 MCP 의존성은 `agents/openai.yaml` 의 `policy`, `dependencies` 섹션으로 이동합니다
+- `$ARGUMENTS` 자리표시자는 SKILL.md 본문의 자연어 지침으로 재작성합니다
+- 동적 셸 인젝션(`!`command``)은 `scripts/` 폴더의 스크립트로 분리합니다
+- UI 메타데이터(display_name, icon, default_prompt)는 `agents/openai.yaml` 의 `interface` 블록에 정의합니다
+- 스킬 디렉토리는 `.claude/skills/` 에서 `.agents/skills/` 로 이동합니다

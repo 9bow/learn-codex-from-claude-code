@@ -1,0 +1,166 @@
+---
+title: Subagents 마이그레이션
+description: Claude Code의 .claude/agents 마크다운 에이전트를 Codex의 TOML 에이전트 파일로 변환합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "Claude Code 에이전트 파일을 Codex TOML 형식으로 변환할 수 있다"
+  - "Codex 빌트인 에이전트 역할과 spawn/wait 도구를 이해할 수 있다"
+prerequisites:
+  - "Claude Code subagents 사용 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Subagents"
+    url: "https://developers.openai.com/codex/subagents"
+    accessed: "2026-05-01"
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## Claude Code의 에이전트 파일 형식
+
+Claude Code는 `.claude/agents/<name>.md` 파일에 YAML frontmatter와 마크다운 본문으로 에이전트를 정의합니다.
+
+```markdown
+---
+name: reviewer
+description: 코드 리뷰를 수행하는 에이전트
+model: claude-sonnet-4-6
+tools:
+  - Read
+  - Bash
+skills:
+  - code-review
+---
+
+당신은 시니어 엔지니어입니다. 제출된 코드를 리뷰하고
+버그, 성능 문제, 보안 취약점을 찾아 보고하세요.
+```
+
+## Codex의 에이전트 파일 형식
+
+Codex는 `~/.codex/agents/<name>.toml` 또는 `.codex/agents/<name>.toml` 에 TOML 형식으로 에이전트를 정의합니다.
+
+```toml
+name = "reviewer"
+description = "코드 리뷰를 수행하는 에이전트"
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+당신은 시니어 엔지니어입니다. 제출된 코드를 리뷰하고
+버그, 성능 문제, 보안 취약점을 찾아 보고하세요.
+"""
+```
+
+## 필드 매핑 표
+
+| Claude Code (YAML) | Codex (TOML) | 설명 |
+|--------------------|--------------|------|
+| `name` | `name` | 에이전트 이름 |
+| `description` | `description` | 에이전트 설명 |
+| `model` | `model` | 사용 모델 |
+| — | `model_reasoning_effort` | 추론 깊이 |
+| — | `sandbox_mode` | 샌드박스 모드 |
+| 마크다운 본문 | `developer_instructions` | 에이전트 지침 |
+| `tools` | (approval_policy로 제어) | 허용 도구 |
+| `skills` | (SKILL.md에서 자동 로드) | 사용 스킬 |
+
+## 변환 예시
+
+<Compare>
+  <Fragment slot="left">
+  **`.claude/agents/test-writer.md`**
+  ```markdown
+  ---
+  name: test-writer
+  description: 테스트 코드를 작성하는 에이전트
+  model: claude-haiku-4-5
+  tools:
+    - Read
+    - Write
+    - Bash
+  ---
+
+  주어진 함수에 대한 단위 테스트를
+  Jest 형식으로 작성합니다.
+  커버리지 80% 이상을 목표로 합니다.
+  ```
+
+  </Fragment>
+  <Fragment slot="right">
+  **`.codex/agents/test-writer.toml`**
+  ```toml
+  name = "test-writer"
+  description = "테스트 코드를 작성하는 에이전트"
+  model = "gpt-5.4-mini"
+  model_reasoning_effort = "medium"
+  sandbox_mode = "workspace-write"
+  developer_instructions = """
+  주어진 함수에 대한 단위 테스트를
+  Jest 형식으로 작성합니다.
+  커버리지 80% 이상을 목표로 합니다.
+  """
+  ```
+
+  </Fragment>
+</Compare>
+
+## 빌트인 에이전트 역할
+
+Codex는 사용자 정의 에이전트 외에 세 가지 빌트인 역할을 제공합니다.
+
+| 역할 | 설명 |
+|------|------|
+| `default` | 기본 메인 에이전트 |
+| `worker` | 서브태스크를 병렬 처리하는 워커 |
+| `explorer` | 파일 시스템 탐색 및 정보 수집 전문 |
+
+## 에이전트 생성/제어 도구
+
+Codex에서 에이전트를 프로그래밍 방식으로 제어할 때 사용하는 도구입니다.
+
+| 도구 | 설명 |
+|------|------|
+| `spawn_agent` | 새 에이전트 스레드 생성 |
+| `send_input` | 실행 중인 에이전트에 입력 전송 |
+| `resume_agent` | 일시 중지된 에이전트 재개 |
+| `wait_agent` | 에이전트 완료까지 대기 |
+| `close_agent` | 에이전트 스레드 종료 |
+
+Claude Code에서는 에이전트 간 조율을 주로 SKILL.md나 프롬프트에서 자연어로 기술했지만, Codex는 위 도구를 통해 구조적으로 제어합니다.
+
+## 에이전트 한도 설정
+
+`config.toml` 의 `[agents]` 섹션으로 동시 실행 한도를 조정할 수 있습니다.
+
+```toml
+[agents]
+max_threads = 6           # 최대 동시 에이전트 스레드
+max_depth = 1             # 에이전트 중첩 깊이
+job_max_runtime_seconds = 1800  # 단일 작업 최대 실행 시간 (초)
+```
+
+:::caution[주의]
+`max_depth = 1` 기본값은 에이전트가 또 다른 에이전트를 재귀적으로 생성하는 것을 제한합니다. 복잡한 멀티 에이전트 파이프라인을 구성할 때는 이 값을 높여야 합니다.
+:::
+
+<ConceptCard title="TUI에서 에이전트 전환">
+Codex TUI에서 `/agent` 커맨드를 사용하면 현재 실행 중인 에이전트 스레드 목록을 보고 전환할 수 있습니다. Claude Code에는 없는 기능으로, 여러 에이전트를 동시에 관리할 때 유용합니다.
+</ConceptCard>
+
+:::tip[팁]
+서브태스크가 많은 경우 `worker` 빌트인 역할로 에이전트를 정의하면 Codex가 자동으로 병렬 처리를 최적화합니다. `model = "gpt-5.4-mini"` 와 함께 사용하면 비용 효율도 높아집니다.
+:::
+
+## 핵심 정리
+
+- Claude Code의 `.claude/agents/<name>.md` 는 Codex의 `.codex/agents/<name>.toml` 로 변환합니다
+- 마크다운 본문(에이전트 지침)은 TOML의 `developer_instructions` 필드로 이동합니다
+- Codex는 `default`, `worker`, `explorer` 세 가지 빌트인 에이전트 역할을 제공합니다
+- `spawn_agent`, `wait_agent` 등의 도구로 에이전트를 구조적으로 제어할 수 있습니다
+- `[agents]` 섹션으로 최대 스레드 수, 중첩 깊이, 실행 시간 한도를 설정합니다

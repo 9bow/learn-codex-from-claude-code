@@ -1,0 +1,14 @@
+---
+type Props = { left?: string; right?: string };
+const { left = 'Claude Code', right = 'Codex' } = Astro.props;
+---
+<div class="compare-grid">
+  <div>
+    <h4 style="margin-top:0">🟠 {left}</h4>
+    <slot name="left" />
+  </div>
+  <div>
+    <h4 style="margin-top:0">🟢 {right}</h4>
+    <slot name="right" />
+  </div>
+</div>

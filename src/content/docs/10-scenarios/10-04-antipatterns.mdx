@@ -1,0 +1,173 @@
+---
+title: 자주 저지르는 안티패턴
+description: Claude Code에서 Codex로 전환할 때 흔히 저지르는 설정·사용 실수와 올바른 해결책을 정리합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "마이그레이션 시 자주 발생하는 5가지 안티패턴을 식별하고 올바른 대안을 적용할 수 있다"
+  - "hooks가 동작하지 않는 원인과 skills 경로 오류를 진단할 수 있다"
+prerequisites:
+  - "config.toml, AGENTS.md, Skills 기본 이해"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+import Quiz from '../../../components/learning/Quiz';
+
+## 안티패턴 1: --yolo 상시 사용
+
+`--yolo` (또는 `--dangerously-bypass-approvals-and-sandbox`) 플래그는 모든 승인과 샌드박스를 우회합니다. 빠르게 테스트할 때 편리하지만, 습관적으로 사용하면 돌이킬 수 없는 파일 삭제나 의도치 않은 네트워크 요청이 발생할 수 있습니다.
+
+**잘못된 패턴:**
+```bash
+# alias로 등록해 항상 --yolo 모드로 실행
+alias codex='codex --yolo'
+```
+
+**올바른 접근:**
+```bash
+# 기본은 안전한 정책 유지
+codex  # approval_policy = "on-request" (기본값)
+
+# 신뢰할 수 있는 스크립트 실행 시에만 일시적으로 사용
+codex --yolo "로컬 테스트 데이터베이스 초기화해 줘"
+```
+
+`config.toml`에서 특정 작업에 더 관대한 권한을 주고 싶다면 `--profile` 을 활용하는 것이 더 안전합니다.
+
+## 안티패턴 2: AGENTS.md 미작성
+
+AGENTS.md 없이 `codex`를 실행하면 에이전트가 프로젝트 컨텍스트 없이 동작합니다. 특히 큰 모노레포나 복잡한 스택에서는 엉뚱한 파일을 수정하거나 잘못된 명령을 실행할 가능성이 높아집니다.
+
+**잘못된 패턴:**
+```bash
+# AGENTS.md 없이 바로 실행
+codex "인증 기능 구현해 줘"
+# → 어떤 언어로? 어떤 프레임워크로? 어디에 파일을 만들어야 하는지 모름
+```
+
+**올바른 접근:**
+```bash
+# 먼저 AGENTS.md 생성
+cat > AGENTS.md << 'EOF'
+# My Project
+Node.js 22 + TypeScript + Express. JWT 인증 사용.
+새 파일은 src/ 아래에 생성. 테스트는 pnpm test로 실행.
+EOF
+
+codex "인증 기능 구현해 줘"
+```
+
+## 안티패턴 3: Claude Code SKILL.md 필드를 AGENTS.md에 그대로 이전
+
+Claude Code의 `SKILL.md`는 `disable-model-invocation`, `effort`, `user-invocable`, `context: fork` 같은 Claude Code 전용 frontmatter 필드를 사용합니다. 이 내용을 Codex `AGENTS.md`나 Codex `SKILL.md`에 그대로 옮기면 무시되거나 오류를 유발합니다.
+
+**잘못된 패턴:**
+```markdown
+---
+name: my-skill
+description: 코드 리뷰 스킬
+disable-model-invocation: true   # Claude Code 전용 필드
+effort: high                      # Claude Code 전용 필드
+user-invocable: true              # Claude Code 전용 필드
+---
+```
+
+**올바른 접근:**
+
+Codex Agent Skills 표준의 SKILL.md는 `name`과 `description`만 필수입니다. 실험적으로 `allowed-tools`가 지원되며, 그 외 Claude Code 전용 필드는 제거합니다.
+
+```markdown
+---
+name: my-skill
+description: 코드 리뷰 스킬 — 보안 취약점과 성능 이슈를 분석합니다
+allowed-tools:
+  - read_file
+  - list_files
+---
+
+# 코드 리뷰 가이드
+
+[스킬 본문...]
+```
+
+## 안티패턴 4: hooks 설정 후 미동작
+
+Claude Code의 hooks(`settings.json`)를 Codex hooks(`config.toml` 또는 `hooks.json`)로 옮겼는데 실행되지 않는 경우, 대부분 `features.codex_hooks = true` 게이트를 활성화하지 않은 탓입니다.
+
+**잘못된 패턴:**
+```toml
+# config.toml — features 블록 없이 hooks만 정의
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 .codex/hooks/policy.py"
+```
+
+**올바른 접근:**
+```toml
+# config.toml — features.codex_hooks 반드시 활성화
+[features]
+codex_hooks = true
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 .codex/hooks/policy.py"
+timeout = 30
+statusMessage = "Checking Bash command"
+```
+
+:::caution[기억할 것]
+`features.codex_hooks = true` 가 없으면 hooks 블록 전체가 **무시** 됩니다. 설정했는데 동작하지 않는다면 이 항목을 가장 먼저 확인하세요.
+:::
+
+## 안티패턴 5: Skills를 잘못된 경로에 설치
+
+Claude Code의 skills는 `.claude/skills/` 아래에 있습니다. Codex의 User-level skills는 `~/.agents/skills/` 입니다. `~/.codex/skills/`가 아닙니다.
+
+**잘못된 패턴:**
+```bash
+# 잘못된 경로 — ~/.codex/skills/ 는 스캔 대상이 아님
+mkdir -p ~/.codex/skills/my-skill
+cp SKILL.md ~/.codex/skills/my-skill/
+```
+
+**올바른 접근:**
+
+| 스코프 | 올바른 경로 |
+|--------|------------|
+| User (전역) | `~/.agents/skills/<skill-name>/` |
+| 저장소 루트 | `$REPO_ROOT/.agents/skills/<skill-name>/` |
+| 현재 디렉토리 | `$CWD/.agents/skills/<skill-name>/` |
+| 시스템 (관리자) | `/etc/codex/skills/<skill-name>/` |
+
+```bash
+# 올바른 경로
+mkdir -p ~/.agents/skills/my-skill
+cp SKILL.md ~/.agents/skills/my-skill/
+```
+
+<ConceptCard title="Skills 인식 확인하기">
+스킬이 올바르게 인식되는지 확인하려면 Codex TUI에서 `/skills` 슬래시 커맨드를 입력하세요. 현재 로드된 스킬 목록이 표시됩니다. 목록에 없다면 경로를 다시 확인하세요.
+</ConceptCard>
+
+## 핵심 정리
+
+- `--yolo` 는 일시적 테스트용입니다. alias로 상시 활성화하지 마세요
+- `AGENTS.md` 없이 실행하면 에이전트가 컨텍스트 없이 동작합니다. 반드시 작성하세요
+- Claude Code SKILL.md의 `disable-model-invocation`, `effort` 등은 Codex 전용 필드가 아닙니다. 제거하세요
+- hooks가 동작하지 않으면 `features.codex_hooks = true` 를 먼저 확인하세요
+- User-level skills 경로는 `~/.agents/skills/` 입니다. `~/.codex/skills/` 가 아닙니다
+
+<Quiz client:load section="10" />

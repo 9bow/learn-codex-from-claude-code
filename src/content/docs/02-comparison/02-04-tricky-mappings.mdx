@@ -1,0 +1,194 @@
+---
+title: 1:1 매핑이 어려운 영역
+description: Skills frontmatter 차이, Plan Mode 부재, CLAUDE.md 자동 메모리, hooks 차이 등 전환 시 주의해야 할 영역을 설명합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "전환 시 직접 대응이 없어 별도 처리가 필요한 영역을 사전에 파악할 수 있다"
+  - "Plan Mode, 자동 메모리, hooks 이벤트 차이에 대한 대안을 설명할 수 있다"
+prerequisites:
+  - "02-03 1:1 매핑이 가능한 영역"
+estimated_minutes: 30
+references:
+  - title: "Codex Skills Reference"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+  - title: "Codex Advanced Config"
+    url: "https://developers.openai.com/codex/config-advanced"
+    accessed: "2026-05-01"
+  - title: "Agent Skills Specification"
+    url: "https://agentskills.io/specification"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 전환 시 주의해야 할 영역
+
+앞 챕터에서 "쉬운 전환" 영역을 살펴봤다면, 이 챕터는 그 반대입니다. 개념 자체가 다르거나, Codex에 아예 없거나, 동작 방식이 크게 달라 **주의가 필요한** 영역입니다.
+
+## Skills frontmatter 차이
+
+Claude Code와 Codex 모두 `SKILL.md` 파일을 사용하지만, 지원하는 frontmatter 필드가 다릅니다.
+
+<Compare>
+  <Fragment slot="left">
+```markdown
+---
+# Claude Code SKILL.md frontmatter
+name: my-skill
+description: "스킬 설명"
+allowed-tools:
+  - Read
+  - Bash
+model: claude-sonnet-4-6
+effort: medium
+disable-model-invocation: false
+user-invocable: true
+paths:
+  - ./src/**
+arguments:
+  - name: target
+    description: "대상 파일"
+context: fork
+hooks:
+  PreToolUse: ...
+shell: bash
+---
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```markdown
+---
+# Codex (Agent Skills 표준) SKILL.md frontmatter
+name: my-skill
+description: "스킬 설명"
+# 위 두 필드만 필수!
+# 선택 필드:
+license: MIT
+compatibility:
+  - codex
+  - claude-code
+metadata:
+  author: "..."
+allowed-tools:        # experimental
+  - Read
+---
+```
+
+  </Fragment>
+</Compare>
+
+:::caution[주의]
+Agent Skills 표준에서 `SKILL.md` frontmatter는 **`name`과 `description`만 필수** 입니다. Claude Code에서 사용하던 `model`, `effort`, `disable-model-invocation`, `user-invocable`, `paths`, `arguments`, `context`, `hooks`, `shell` 등의 필드는 Agent Skills 표준 스펙에 없습니다.
+
+Codex는 이런 필드를 무시할 수 있으므로 오류가 발생하지 않을 수 있지만, 의도한 대로 동작하지 않습니다. Claude Code 전용 로직은 `SKILL.md` 본문이나 `agents/openai.yaml` 로 이전해야 합니다.
+:::
+
+Skills 디렉토리 경로도 다릅니다.
+
+| | Claude Code | Codex (Agent Skills 표준) |
+|--|-------------|---------------------------|
+| 경로 | `.claude/skills/<name>/` | `.agents/skills/<name>/` (프로젝트) 또는 `$HOME/.agents/skills/<name>/` (전역) |
+| 보조 파일 | 자유롭게 추가 가능 | `README.md`, `CHANGELOG.md` 등 **금지** (skill-creator 명시) |
+| UI 메타데이터 | — | `agents/openai.yaml` 에 정의 |
+
+## Plan Mode 부재
+
+Claude Code에는 **Plan Mode** 가 있습니다. `/plan` 슬래시 커맨드나 `plan` 권한 모드를 사용하면, 에이전트가 파일을 수정하지 않고 계획만 수립합니다.
+
+```
+# Claude Code Plan Mode
+/plan
+→ 에이전트가 실행 없이 변경 계획만 설명
+→ 사용자가 승인하면 ExitPlanMode 후 실행
+```
+
+Codex에는 이에 직접 대응하는 기능이 **없습니다**.
+
+<ConceptCard title="Plan Mode 대안">
+Codex에서 Plan Mode와 유사한 효과를 내는 방법:
+
+1. **프롬프트로 지시**: "수정하지 말고 변경 계획만 설명해 줘"라고 명시적으로 요청
+2. **`sandbox_mode = "read-only"`**: 파일 쓰기를 차단해 에이전트가 읽기만 하도록 강제
+3. **`approval_policy = "untrusted"`**: 모든 작업 전 승인 요청으로 세밀한 제어
+
+단, 이 방법들은 Claude Code의 Plan Mode처럼 자동으로 계획 수립 후 실행 전환이 되지는 않습니다.
+</ConceptCard>
+
+## CLAUDE.md 자동 메모리 vs AGENTS.md
+
+Claude Code의 `/memory` 슬래시 커맨드는 대화 중 `CLAUDE.md` 파일을 즉시 편집할 수 있게 해줍니다. 에이전트가 학습한 내용을 영구 기억에 저장하는 패턴입니다.
+
+Codex에는 `/memory` 커맨드가 **없습니다**. `AGENTS.md` 는 세션 시작 시 읽히는 정적 파일이며, 대화 중 자동 편집되지 않습니다.
+
+| 기능 | Claude Code | Codex |
+|------|-------------|-------|
+| 지침 파일 자동 편집 | `/memory` 슬래시 커맨드 | 없음 (수동 편집 필요) |
+| 세션 간 기억 | CLAUDE.md 자동 업데이트 | AGENTS.md 수동 유지 |
+| 로컬 오버라이드 | `CLAUDE.local.md` | `AGENTS.override.md` |
+
+:::tip[팁]
+Codex에서 세션 간 지식을 유지하려면 `AGENTS.md` 를 직접 편집하거나, 에이전트에게 "이 내용을 AGENTS.md에 추가해 줘"라고 명시적으로 요청하는 방식을 사용하세요.
+:::
+
+## Hooks 이벤트 차이
+
+Claude Code는 8가지 hooks 이벤트를 지원하지만, Codex는 현재 `PreToolUse` 만 지원합니다. 또한 Codex hooks는 `features.codex_hooks = true` 게이트 활성화가 필요합니다.
+
+| 이벤트 | Claude Code | Codex |
+|--------|-------------|-------|
+| `PreToolUse` | 지원 | 지원 (게이트 필요) |
+| `PostToolUse` | 지원 | **미지원** |
+| `PostToolUseFailure` | 지원 | **미지원** |
+| `Stop` | 지원 | **미지원** |
+| `SessionStart` | 지원 | **미지원** |
+| `SessionEnd` | 지원 | **미지원** |
+| `UserPromptSubmit` | 지원 | **미지원** |
+| `PermissionRequest` | 지원 | **미지원** |
+
+Claude Code에서 `PostToolUse` 로 자동 포맷팅을 하거나 `Stop` 이벤트로 세션 종료 시 정리 작업을 하던 패턴은 Codex로 직접 이전할 수 없습니다.
+
+## ExitPlanMode 도구
+
+Claude Code는 `ExitPlanMode` 라는 특수 도구가 있어 Plan Mode에서 실행 모드로 전환합니다. Codex에는 이 도구가 **없습니다**.
+
+## Profiles (실험적)
+
+Codex의 Profiles 기능은 상황에 따라 다른 설정을 빠르게 전환할 수 있습니다.
+
+```toml
+# ~/.codex/config.toml
+[profiles.fast]
+model = "gpt-5.4-mini"
+model_reasoning_effort = "low"
+approval_policy = "never"
+
+[profiles.careful]
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+```
+
+```bash
+codex --profile fast "빠르게 린트 수정해 줘"
+codex --profile careful "중요한 리팩토링 진행해 줘"
+```
+
+:::caution[주의]
+Profiles는 **Experimental** 기능이며 IDE 확장에서는 지원되지 않습니다. CLI 전용입니다.
+:::
+
+Claude Code에는 이에 대응하는 기능이 없으므로 이것은 Codex에만 있는 추가 기능입니다.
+
+## 핵심 정리
+
+- **Skills frontmatter**: Agent Skills 표준은 `name`과 `description`만 필수. Claude Code 전용 필드는 작동하지 않습니다
+- **Skills 경로**: `.claude/skills/` 가 아닌 **`.agents/skills/`** 로 이동해야 합니다
+- **Plan Mode** 는 Codex에 없습니다. `read-only` sandbox나 프롬프트로 유사하게 구현 가능합니다
+- **`/memory`** 슬래시 커맨드가 없어 `AGENTS.md` 자동 편집이 되지 않습니다
+- **Hooks** 는 현재 Codex에서 `PreToolUse` 만 지원하며, `features.codex_hooks = true` 게이트가 필요합니다
+- **Profiles** 는 Codex 전용 실험적 기능으로 CLI에서만 동작합니다

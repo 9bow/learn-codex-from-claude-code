@@ -1,0 +1,108 @@
+---
+title: Claude Code → Codex 마이그레이션 가이드
+description: Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드 (GPT-5.5 시대)
+template: splash
+hero:
+  tagline: Claude Code에 익숙한 당신을 위한, GPT-5.5 시대 Codex로의 자연스러운 이주 가이드
+  image:
+    file: ../../assets/hero-landing.png
+    alt: Claude Code에서 Codex로의 마이그레이션을 표현한 일러스트
+  actions:
+    - text: 학습 시작하기
+      link: /learn-codex-from-claude-code/01-getting-started/01-01-overview/
+      icon: right-arrow
+      variant: primary
+    - text: 1:1 비교표 바로가기
+      link: /learn-codex-from-claude-code/02-comparison/02-02-mapping-table/
+      icon: external
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/9bow/learn-codex-from-claude-code
+      icon: github
+      variant: secondary
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import MigrationFlow from '../../components/learning/MigrationFlow.astro';
+import StatCard from '../../components/learning/StatCard.astro';
+import Timeline from '../../components/learning/Timeline.astro';
+import Badge from '../../components/learning/Badge.astro';
+
+## 한눈에 보는 마이그레이션
+
+<MigrationFlow />
+
+## 왜 지금 이 가이드인가
+
+<div className="stat-grid">
+  <StatCard variant="codex" value="GPT-5.5" label="플래그십 모델" hint="ChatGPT 인증 전용 · API 키 미지원" />
+  <StatCard variant="codex" value="2×" label="사용 한도 프로모션" hint="Plus / Pro / Business / Enterprise / Edu (2026-05 한정)" />
+  <StatCard variant="claude" value="11" label="섹션" hint="설치부터 팀 마이그레이션까지" />
+  <StatCard variant="neutral" value="47+" label="챕터" hint="총 16~20시간 분량 · 121문항 퀴즈 포함" />
+</div>
+
+## 커리큘럼 개요
+
+<CardGrid>
+  <Card title="01. 시작하기" icon="rocket">
+    가이드 사용법, Codex 라인업, 2025–2026 진화, Claude Code 사용자가 마주할 첫 인상, 마이그레이션 로드맵.
+  </Card>
+  <Card title="02. 한눈에 보는 비교" icon="approve-check-circle">
+    철학·명령어·파일을 1:1 매핑. 매핑 가능/어려운 영역과 UI 비교 표.
+  </Card>
+  <Card title="03. 설치와 인증" icon="setting">
+    CLI / IDE 확장 / Desktop App 설치, ChatGPT vs API 키 의사결정 트리.
+  </Card>
+  <Card title="04. 설정 파일 마이그레이션" icon="document">
+    `settings.json` → `config.toml`, `CLAUDE.md` → `AGENTS.md`, Permissions → Approval + Sandbox + Codex Rules.
+  </Card>
+  <Card title="05. 핵심 기능 매핑" icon="puzzle">
+    모델/effort, Slash Commands, MCP, Subagents, Hooks, Web Search 매핑.
+  </Card>
+  <Card title="06. Skills 마이그레이션" icon="star">
+    Claude Code Skills를 Codex Agent Skills로 변환. 정확한 frontmatter·디렉토리 규칙·`agents/openai.yaml` 작성.
+  </Card>
+  <Card title="07. 일상 워크플로우" icon="laptop">
+    코드 작성·디버깅·리뷰·CI 흐름을 Codex 방식으로 재구성. `/personality` 활용.
+  </Card>
+  <Card title="08. Codex Desktop App" icon="open-book">
+    멀티 에이전트 명령 센터, 워크트리 격리, Auto Tasks, CLI/IDE/App 동기화.
+  </Card>
+  <Card title="09. 고급 기능" icon="sun">
+    Profiles, resume/fork, Codex Cloud, multi-agent orchestration, Codex를 MCP 서버로 노출.
+  </Card>
+  <Card title="10. 실전 시나리오" icon="pencil">
+    개인/팀 마이그레이션, Claude+Codex 병용 전략, 안티패턴 모음.
+  </Card>
+  <Card title="11. 트러블슈팅 & 참고" icon="warning">
+    자주 발생하는 문제, 공식 리소스 모음, 최종 체크리스트.
+  </Card>
+</CardGrid>
+
+## 누구를 위한 가이드인가
+
+<div class="audience-list">
+
+- <Badge variant="claude" text="Claude Code 사용자" /> 슬래시 커맨드, `CLAUDE.md`, hooks, subagents, skills, MCP를 어느 정도 이해하고 있는 분
+- <Badge variant="codex" text="Codex 전환자" /> GPT-5.5 / Codex App 출시 이후 OpenAI 생태계로 옮겨가려는 분
+- <Badge variant="info" text="병용 전략가" /> 두 도구를 함께 쓰면서 강점만 골라 활용하고 싶은 분
+- <Badge variant="success" text="팀 리더" /> 팀 단위로 Codex 도입을 검토 중인 매니저·테크리드
+
+</div>
+
+## 주요 마일스톤 (2025-2026)
+
+<Timeline items={[
+  { date: "2025-04", title: "Codex 최초 출시", description: "OpenAI가 코딩 에이전트 Codex를 처음 공개. 단일 에이전트 워크플로 중심." },
+  { date: "2025-12", title: "GPT-5.2-Codex 출시", description: "이후 한 달 만에 Codex 전체 사용량 2배 증가. 100만+ 개발자 사용." },
+  { date: "2026-03-04", title: "Codex Desktop App (Windows)", description: "macOS에 이어 Windows 지원. 멀티 에이전트 명령 센터로 자리 잡음." },
+  { date: "2026-05", title: "본 가이드 작성 시점", description: "GPT-5.5 / GPT-5.4 / GPT-5.3-Codex(-Spark) / GPT-5.2 라인업, Agent Skills 표준 정착." },
+]} />
+
+:::tip[가이드 사용법]
+순서대로 읽는 것을 권장하지만, 이미 익숙한 개념은 건너뛰어도 좋습니다.
+**[02. 한눈에 보는 비교](/learn-codex-from-claude-code/02-comparison/02-02-mapping-table/)** 의 매핑 표만 빠르게 훑고, 막힐 때 해당 섹션으로 돌아오는 것이 효율적입니다.
+:::
+
+작성 기준일: **2026-05-01**. 변경되는 항목은 각 챕터 하단의 참고 링크에서 최신 공식 문서를 확인하세요.
+

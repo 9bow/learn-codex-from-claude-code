@@ -1,0 +1,96 @@
+---
+title: 공식 리소스 및 커뮤니티
+description: Codex와 Claude Code 관련 공식 문서, GitHub 저장소, 커뮤니티 링크를 카테고리별로 정리합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "Codex 관련 공식 문서와 GitHub 저장소의 위치를 파악할 수 있다"
+  - "문제 해결 시 참고할 커뮤니티 채널과 이슈 트래커를 찾을 수 있다"
+prerequisites:
+  - "없음"
+estimated_minutes: 15
+references:
+  - title: "Codex CLI GitHub"
+    url: "https://github.com/openai/codex"
+    accessed: "2026-05-01"
+  - title: "Agent Skills GitHub"
+    url: "https://github.com/openai/skills"
+    accessed: "2026-05-01"
+---
+
+## Codex 공식 문서
+
+| 문서 | URL | 설명 |
+|------|-----|------|
+| CLI 기능 개요 | [developers.openai.com/codex/cli/features](https://developers.openai.com/codex/cli/features) | CLI 주요 기능 전체 설명 |
+| CLI 레퍼런스 | [developers.openai.com/codex/cli/reference](https://developers.openai.com/codex/cli/reference) | 명령어·플래그 전체 목록 |
+| Config 레퍼런스 | [developers.openai.com/codex/config-reference](https://developers.openai.com/codex/config-reference) | config.toml 전체 키 문서 |
+| Config 고급 | [developers.openai.com/codex/config-advanced](https://developers.openai.com/codex/config-advanced) | profiles, hooks, multi-agent 등 고급 설정 |
+| AGENTS.md 가이드 | [developers.openai.com/codex/guides/agents-md](https://developers.openai.com/codex/guides/agents-md) | instruction 파일 작성법 |
+| 모델 목록 | [developers.openai.com/codex/models](https://developers.openai.com/codex/models) | 지원 모델 및 특징 |
+| Subagents | [developers.openai.com/codex/subagents](https://developers.openai.com/codex/subagents) | 멀티 에이전트 오케스트레이션 |
+| Skills | [developers.openai.com/codex/skills](https://developers.openai.com/codex/skills) | Agent Skills 표준 및 사용법 |
+| Rules | [developers.openai.com/codex/rules](https://developers.openai.com/codex/rules) | 프로젝트 자동화 규칙 정의 |
+| 요금제 | [developers.openai.com/codex/pricing](https://developers.openai.com/codex/pricing) | 플랜별 비용 및 한도 |
+
+## Codex GitHub 저장소
+
+| 저장소 | URL | 설명 |
+|--------|-----|------|
+| Codex CLI | [github.com/openai/codex](https://github.com/openai/codex) | Rust 기반 오픈소스 CLI. 이슈 트래커, 소스 코드 |
+| Agent Skills | [github.com/openai/skills](https://github.com/openai/skills) | 공식 큐레이트 스킬 모음 (`linear`, `figma`, `pdf` 등) |
+
+:::tip[이슈 제보]
+CLI 버그나 기능 요청은 `github.com/openai/codex/issues`에 이슈를 등록하세요. 오픈소스 프로젝트이므로 PR 기여도 환영합니다.
+:::
+
+## Agent Skills 표준
+
+| 리소스 | URL | 설명 |
+|--------|-----|------|
+| Agent Skills 공식 사양 | [agentskills.io/specification](https://agentskills.io/specification) | SKILL.md 형식 및 디렉토리 구조 전체 사양 |
+| 큐레이트 카탈로그 | [github.com/openai/skills](https://github.com/openai/skills) | `.curated/` 아래의 공식 검증 스킬 목록 |
+
+## Claude Code 공식 문서
+
+| 문서 | URL | 설명 |
+|------|-----|------|
+| Claude Code 개요 | [docs.claude.com/en/docs/claude-code/overview](https://docs.claude.com/en/docs/claude-code/overview) | Claude Code 전체 기능 설명 |
+| Skills (Claude Code) | [docs.anthropic.com/en/docs/claude-code/skills](https://docs.anthropic.com/en/docs/claude-code/skills) | Claude Code skills 작성법 |
+
+## Codex Desktop App
+
+| 리소스 | URL | 설명 |
+|--------|-----|------|
+| Desktop App 소개 | [openai.com/index/introducing-the-codex-app/](https://openai.com/index/introducing-the-codex-app/) | macOS/Windows Desktop App 출시 발표 및 기능 설명 |
+
+## 커뮤니티 채널
+
+:::note[커뮤니티 참여 방법]
+공식 문서에서 해결되지 않는 문제나 사용 사례 공유는 커뮤니티 채널을 활용하세요. 실제 사용자들의 경험과 팁이 모여 있습니다.
+:::
+
+| 채널 | 설명 |
+|------|------|
+| OpenAI Community Forum | [community.openai.com](https://community.openai.com) — Codex 관련 질문·토론 |
+| OpenAI Discord | OpenAI 공식 Discord 서버 내 `#codex-cli` 채널 |
+| GitHub Discussions | [github.com/openai/codex/discussions](https://github.com/openai/codex/discussions) — 기능 제안, 사용법 질문 |
+| Reddit r/ChatGPT | Codex 사용 사례 공유 및 팁 교환 |
+
+## 이 가이드 저장소
+
+| 리소스 | URL |
+|--------|-----|
+| 이 가이드 소스 | [github.com/9bow/learn-codex-from-claude-code](https://github.com/9bow/learn-codex-from-claude-code) |
+| 배포 사이트 | [9bow.github.io/learn-codex-from-claude-code/](https://9bow.github.io/learn-codex-from-claude-code/) |
+
+내용 오류, 오타, 개선 제안이 있다면 GitHub 이슈 또는 PR로 알려주세요.
+
+## 핵심 정리
+
+- Codex 공식 문서는 `developers.openai.com/codex/` 아래에 기능별로 정리되어 있습니다
+- CLI 소스 코드와 이슈 트래커는 `github.com/openai/codex` 에 있습니다
+- 공식 스킬 카탈로그는 `github.com/openai/skills` 에서 확인할 수 있습니다
+- Agent Skills 표준 사양은 `agentskills.io/specification` 에서 확인할 수 있습니다
+- 커뮤니티 질문은 GitHub Discussions 또는 OpenAI Community Forum을 활용하세요
+- Claude Code 문서는 `docs.claude.com` 과 `docs.anthropic.com` 에서 확인할 수 있습니다

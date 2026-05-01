@@ -1,0 +1,146 @@
+---
+title: 코드 리뷰
+description: Codex의 /review 프리셋과 Claude Code의 code-reviewer 서브에이전트 패턴을 비교하고 실제 리뷰 시나리오를 익힙니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "Codex /review 프리셋의 네 가지 모드(branch, uncommitted, commit, custom)를 상황에 맞게 선택할 수 있다"
+  - "Claude Code code-reviewer 서브에이전트와 Codex /review 의 차이를 설명할 수 있다"
+prerequisites:
+  - "07-01 코드 작성 흐름 챕터 읽기"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 코드 리뷰 방식의 차이
+
+Claude Code에서 코드 리뷰는 주로 `.claude/agents/code-reviewer.md` 서브에이전트를 정의하고 명시적으로 호출하는 방식이었습니다. 에이전트의 지침을 직접 작성해야 했고, 리뷰 범위도 프롬프트로 지정했습니다.
+
+Codex는 **`/review` 슬래시 커맨드** 를 빌트인으로 제공합니다. 네 가지 프리셋으로 가장 흔한 리뷰 시나리오를 즉시 실행할 수 있습니다.
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code**
+  - `.claude/agents/code-reviewer.md` 직접 작성
+  - `@code-reviewer` 로 명시 호출
+  - 리뷰 범위를 프롬프트로 지정
+  - 에이전트 지침 유지·관리 필요
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex**
+  - `/review` 슬래시 커맨드 빌트인
+  - branch / uncommitted / commit / custom 프리셋
+  - 선택 후 즉시 실행
+  - 별도 에이전트 파일 불필요
+
+  </Fragment>
+</Compare>
+
+## /review 네 가지 프리셋
+
+TUI에서 `/review` 를 입력하면 프리셋 선택 메뉴가 나타납니다.
+
+| 프리셋 | 리뷰 범위 | 주요 사용 상황 |
+|--------|-----------|---------------|
+| **branch** | 현재 브랜치와 base 브랜치의 diff | PR 제출 전 전체 변경 검토 |
+| **uncommitted** | 스테이징·언스테이징 포함 워킹 트리 변경 | 커밋 전 즉석 리뷰 |
+| **commit** | 특정 커밋 하나 | 이미 커밋한 내용 사후 검토 |
+| **custom** | 직접 지정한 범위 | 특정 파일, 함수, 범위 리뷰 |
+
+```bash
+# TUI에서
+/review
+# → branch / uncommitted / commit / custom 선택
+```
+
+:::tip[팁]
+`/review branch` 는 PR을 열기 전 가장 먼저 실행하는 습관을 들이면 좋습니다. base 브랜치 대비 전체 변경 사항을 한 번에 검토할 수 있습니다.
+:::
+
+## 실제 리뷰 시나리오
+
+### 시나리오 1: PR 제출 전 브랜치 리뷰
+
+```bash
+# feature/auth-refactor 브랜치에서
+codex
+/review
+# → branch 선택
+# Codex가 main 대비 변경 사항 전체를 분석하고
+# 잠재적 문제, 개선점, 누락된 테스트를 지적합니다
+```
+
+### 시나리오 2: 커밋 전 빠른 검토
+
+```bash
+# 작업 중 변경 사항이 쌓였을 때
+git add -p  # 스테이징
+codex
+/review
+# → uncommitted 선택
+# 스테이징된 변경과 워킹 트리 변경을 모두 검토합니다
+```
+
+### 시나리오 3: 특정 파일만 집중 리뷰
+
+```bash
+codex
+/review
+# → custom 선택
+# "src/auth/session.ts의 보안 관련 코드만 리뷰해 줘"
+```
+
+## approvals_reviewer 자동 리뷰
+
+`approvals_reviewer = "auto_review"` 설정을 사용하면 도구 실행 승인을 리뷰어 서브에이전트가 자동으로 처리합니다. 사람이 매번 승인하지 않아도 되는 반자동 워크플로에 적합합니다.
+
+```toml
+# ~/.codex/config.toml
+approvals_reviewer = "auto_review"
+```
+
+:::caution[주의]
+`auto_review` 는 모든 도구 실행을 자동 승인하는 것이 아닙니다. 리뷰어 서브에이전트가 정책에 따라 승인 여부를 결정합니다. 프로덕션 환경에서는 Codex Rules와 함께 사용해 정책을 명확하게 정의하세요.
+:::
+
+<ConceptCard title="Claude Code code-reviewer 패턴과의 비교">
+
+Claude Code에서는 다음과 같은 에이전트 파일을 직접 작성했습니다.
+
+```markdown
+---
+name: code-reviewer
+description: 코드 품질과 보안을 검토합니다
+model: claude-opus-4-6
+tools:
+  - Read
+  - Bash
+---
+변경된 파일을 읽고 다음을 검토하세요:
+1. 보안 취약점
+2. 성능 문제
+3. 테스트 누락
+```
+
+Codex의 `/review` 는 이 과정을 생략합니다. 다만 리뷰 지침을 세밀하게 제어하고 싶다면 `~/.codex/agents/reviewer.toml` 을 직접 정의하고 `/agent` 로 호출하는 방식이 여전히 가능합니다.
+
+</ConceptCard>
+
+## 핵심 정리
+
+- Codex **`/review`** 는 별도 에이전트 파일 없이 빌트인으로 제공되는 코드 리뷰 기능입니다
+- **branch** 프리셋은 PR 제출 전, **uncommitted** 는 커밋 전 즉석 검토에 적합합니다
+- **commit** 프리셋으로 이미 커밋된 내용을 사후 검토할 수 있습니다
+- **custom** 프리셋으로 특정 파일이나 범위를 집중 리뷰할 수 있습니다
+- `approvals_reviewer = "auto_review"` 로 도구 실행 승인을 자동화할 수 있습니다
+- 세밀한 리뷰 지침이 필요하면 `~/.codex/agents/reviewer.toml` 을 직접 정의할 수 있습니다

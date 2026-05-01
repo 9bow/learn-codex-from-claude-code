@@ -1,0 +1,192 @@
+---
+title: 팀 프로젝트 마이그레이션
+description: 공유 설정과 CI 통합을 포함한 팀 프로젝트의 Codex 마이그레이션 전략을 설명합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - ".codex/config.toml 체크인 정책과 project trust 설정을 팀 환경에 맞게 구성할 수 있다"
+  - "GitHub Actions에서 codex exec --json을 활용하는 CI 파이프라인을 작성할 수 있다"
+prerequisites:
+  - "개인 프로젝트 마이그레이션 경험 (10-01 참고)"
+  - "GitHub Actions 기본 이해"
+estimated_minutes: 35
+references:
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-01"
+  - title: "Codex Rules"
+    url: "https://developers.openai.com/codex/rules"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Compare from '../../../components/learning/Compare.astro';
+
+## 팀 마이그레이션의 핵심 과제
+
+팀 프로젝트 마이그레이션은 개인 프로젝트와 달리 세 가지 추가 과제가 있습니다.
+
+1. **공유 설정** — 팀원 모두가 동일한 동작을 하도록 설정 표준화
+2. **협업 패턴** — AGENTS.md 공동 편집 및 충돌 방지
+3. **CI 통합** — GitHub Actions 등 자동화 파이프라인 연결
+
+## .codex/config.toml 체크인 정책
+
+`.codex/config.toml`을 저장소에 체크인하면 팀원 전체가 동일한 기본 설정을 사용할 수 있습니다. 단, 개인별로 다를 수 있는 값(API 키, 개인 모델 선호 등)은 글로벌 `~/.codex/config.toml`에 두어야 합니다.
+
+```toml
+# .codex/config.toml (저장소 체크인용)
+# 팀 공통 설정만 포함. 개인 설정은 ~/.codex/config.toml에 둘 것.
+
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[history]
+persistence = "save-all"
+
+[agents]
+max_threads = 4
+max_depth = 1
+job_max_runtime_seconds = 900
+```
+
+:::caution[민감한 정보 주의]
+`config.toml`에 API 키, 토큰, 비밀번호를 절대 포함하지 마세요. 환경 변수로 참조하거나 글로벌 설정 파일에 보관하세요.
+:::
+
+## AGENTS.md / AGENTS.override.md 협업 패턴
+
+팀 환경에서는 AGENTS.md를 역할별로 분리하는 것이 좋습니다.
+
+| 파일 | 용도 | 체크인 |
+|------|------|--------|
+| `AGENTS.md` (프로젝트 루트) | 팀 공통 지침, 코드 스타일, 기술 스택 | 필수 |
+| `.codex/AGENTS.md` | Codex 특화 설정, 허용 명령 | 선택 |
+| `AGENTS.override.md` | 빠른 실험, 일시적 오버라이드 | `.gitignore`에 추가 |
+| `~/.codex/AGENTS.md` | 개인 전역 선호도 | 개인 관리 |
+
+```markdown
+# AGENTS.md (팀 공통)
+
+## 프로젝트 개요
+[팀 프로젝트 이름]은 [설명]입니다.
+
+## 기술 스택
+- TypeScript 5.x, Node.js 22
+- PostgreSQL + Prisma ORM
+- React 19, Next.js 15
+- pnpm 워크스페이스 모노레포
+
+## 팀 코드 규칙
+- PR은 단일 책임 원칙 준수
+- 커밋 메시지: conventional commits 형식
+- 테스트 커버리지 80% 이상 유지
+
+## 금지 사항
+- `main` 브랜치 직접 커밋 금지
+- 환경 변수 하드코딩 금지
+- `node_modules/` 직접 수정 금지
+```
+
+## .agents/skills/ 공유
+
+팀 공용 스킬은 저장소 루트의 `.agents/skills/` 디렉토리에 보관하고 체크인합니다.
+
+```
+my-team-project/
+├── .agents/
+│   └── skills/
+│       ├── code-review/
+│       │   └── SKILL.md
+│       └── security-audit/
+│           └── SKILL.md
+├── .codex/
+│   └── config.toml
+└── AGENTS.md
+```
+
+팀원이 저장소를 클론하면 자동으로 `.agents/skills/`의 스킬이 로드됩니다.
+
+## GitHub Actions에서 codex exec 사용
+
+```yaml
+# .github/workflows/codex-review.yml
+name: Codex Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  codex-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Codex CLI
+        run: curl -sSL https://codex.openai.com/install.sh | sh
+
+      - name: Run Codex Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          codex exec --json --ask-for-approval never \
+            "변경된 파일의 코드 품질과 보안 이슈를 분석하고 JSON으로 결과를 출력해 줘" \
+            | tee review-result.jsonl
+
+      - name: Post Review Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('review-result.jsonl', 'utf8');
+            // JSONL 파싱 및 PR 코멘트 작성
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Codex Review\n\`\`\`\n${results}\n\`\`\``
+            });
+```
+
+<ConceptCard title="Codex Rules로 팀 정책 자동화">
+**Codex Rules** (`developers.openai.com/codex/rules`)는 AGENTS.md의 자연어 지침을 보완하는 자동화 규칙입니다. 특정 명령에 더 높은 권한을 부여하거나, 특정 패턴의 파일 변경 시 자동 승인/거부 등을 설정할 수 있습니다.
+
+팀 프로젝트에서 Rules를 활용하면 리뷰어 없이도 일관된 정책을 적용할 수 있습니다.
+</ConceptCard>
+
+## Claude Code 팀 설정과의 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code 팀 설정**
+  - `.claude/settings.json` 체크인
+  - `CLAUDE.md`에 팀 지침 작성
+  - hooks는 `settings.json`에 정의
+  - `.claude/agents/` 에 에이전트 정의 (Markdown)
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex 팀 설정**
+  - `.codex/config.toml` 체크인 (project trust 필요)
+  - `AGENTS.md`에 팀 지침 작성
+  - hooks는 `hooks.json` 또는 `config.toml` 인라인
+  - `.codex/agents/*.toml` + `.agents/skills/` 에 스킬 정의
+
+  </Fragment>
+</Compare>
+
+## 핵심 정리
+
+- `.codex/config.toml`을 저장소에 체크인해 팀 공통 설정을 표준화합니다
+- API 키 등 민감한 정보는 절대 `config.toml`에 포함하지 마세요
+- `AGENTS.md`(공통), `AGENTS.override.md`(개인 실험)로 역할을 분리합니다
+- 팀 공용 스킬은 `.agents/skills/`에 보관하고 체크인합니다
+- GitHub Actions에서 `codex exec --json` 으로 자동화된 코드 리뷰 파이프라인을 구성할 수 있습니다
+- **Codex Rules** 로 AGENTS.md를 보완하는 자동화 정책을 정의할 수 있습니다

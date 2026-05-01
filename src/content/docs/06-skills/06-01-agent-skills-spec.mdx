@@ -1,0 +1,159 @@
+---
+title: Agent Skills 표준이란
+description: agentskills.io 오픈 표준의 구조, 디렉토리 규칙, 점진적 공개 방식을 설명합니다.
+sidebar:
+  order: 1
+learning_objectives:
+  - "Agent Skills 표준(agentskills.io)의 목적과 구조를 설명할 수 있다"
+  - "SKILL.md의 필수 frontmatter와 디렉토리 규칙을 적용할 수 있다"
+prerequisites:
+  - "Claude Code skills 기본 사용 경험"
+estimated_minutes: 25
+references:
+  - title: "Agent Skills Specification"
+    url: "https://agentskills.io/specification"
+    accessed: "2026-05-01"
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+  - title: "Claude Code Skills"
+    url: "https://docs.anthropic.com/en/docs/claude-code/skills"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Compare from '../../../components/learning/Compare.astro';
+
+![Skills 마이그레이션 개요: .claude/skills/의 풍부한 frontmatter에서 .agents/skills/의 최소 frontmatter + agents/openai.yaml로 변환](/learn-codex-from-claude-code/images/skills-migration.png)
+
+## Agent Skills 표준이란
+
+**Agent Skills** 는 Anthropic이 발원한 오픈 표준으로, AI 에이전트가 재사용 가능한 능력(skill)을 패키지 형태로 공유하고 사용할 수 있도록 정의한 사양입니다. 공식 사양은 agentskills.io에서 관리됩니다.
+
+이 표준은 특정 AI 도구에 종속되지 않는 범용 형식을 목표로 합니다.
+
+- **Claude Code** 는 이 표준을 기반으로 다양한 확장 필드를 추가한 **extension** 구현체입니다.
+- **Codex** 는 표준의 **base spec** 을 따릅니다. 즉, 표준에 정의된 최소 필드만 지원합니다.
+
+이 차이가 마이그레이션의 핵심입니다. Claude Code에서 사용하던 확장 frontmatter 필드들은 Codex에서 지원되지 않으므로, 변환 시 제거하거나 다른 위치로 이동해야 합니다.
+
+## SKILL.md 구조
+
+모든 스킬은 `SKILL.md` 파일을 필수로 포함해야 합니다. frontmatter와 본문으로 구성됩니다.
+
+```markdown
+---
+name: my-skill
+description: 이 스킬이 하는 일을 한 문장으로 설명합니다.
+---
+
+# My Skill
+
+여기에 스킬의 지침을 작성합니다.
+에이전트가 이 스킬을 사용할 때 따라야 할 절차,
+사용 가능한 도구, 예상 출력 형식 등을 기술합니다.
+```
+
+### Base spec 필수 필드
+
+| 필드 | 필수 여부 | 설명 |
+|------|-----------|------|
+| `name` | 필수 | 스킬 이름 (디렉토리명과 정확히 일치해야 함) |
+| `description` | 필수 | 스킬 설명 (암시적 호출 매칭에 사용됨) |
+
+### Base spec 선택 필드
+
+| 필드 | 설명 |
+|------|------|
+| `license` | 라이선스 (예: MIT, Apache-2.0) |
+| `compatibility` | 호환 에이전트 목록 |
+| `metadata` | 추가 메타데이터 |
+| `allowed-tools` | 허용 도구 (Experimental) |
+
+:::caution[주의]
+`context`, `model`, `effort`, `paths`, `arguments`, `disable-model-invocation`, `user-invocable`, `hooks`, `shell` 등은 **Claude Code extension 필드** 입니다. Codex에서는 지원되지 않으므로 SKILL.md에서 제거해야 합니다.
+:::
+
+## 디렉토리 구조와 규칙
+
+스킬은 단일 디렉토리 단위로 구성됩니다.
+
+```
+my-skill/                   # 디렉토리명 = name 필드와 정확히 일치
+├── SKILL.md                # 필수
+├── scripts/                # 선택: 실행 스크립트
+├── references/             # 선택: 참조 문서 (on-demand 로드)
+├── assets/                 # 선택: 이미지 등 (컨텍스트 미적재)
+└── agents/
+    └── openai.yaml         # 선택: UI 메타데이터 + 호출 정책 + MCP 의존성
+```
+
+### 이름 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 문자 | 소문자 알파벳, 숫자, 하이픈(-) |
+| 최대 길이 | 64자 |
+| 형식 | hyphen-case (`my-skill`, `code-review`, `deploy-vercel`) |
+| 일치 | 디렉토리명과 `name` 필드가 정확히 일치해야 함 |
+
+:::tip[팁]
+`README.md`, `CHANGELOG.md` 등 보조 문서 파일은 스킬 디렉토리에 포함하지 않아야 합니다. `$skill-creator` 스킬이 이를 명시적으로 금지합니다. 보조 정보는 `references/` 폴더에 넣으세요.
+:::
+
+## 스캔 경로
+
+Codex는 다음 경로를 순서대로 스캔하여 스킬을 로드합니다.
+
+| 우선순위 | 경로 | 설명 |
+|----------|------|------|
+| SYSTEM | (Codex 내부) | Codex 번들 스킬 |
+| ADMIN | `/etc/codex/skills/` | 시스템 관리자 배포 |
+| USER | `$HOME/.agents/skills/` | 사용자 전역 스킬 |
+| REPO root | `$REPO_ROOT/.agents/skills/` | 프로젝트 루트 스킬 |
+| REPO CWD | `$CWD/.agents/skills/` | 현재 작업 디렉토리 스킬 |
+
+:::caution[주의]
+스킬 경로는 `.codex/skills/` 가 **아닙니다**. `.agents/skills/` 입니다. 혼동하기 쉬운 부분이므로 주의하세요.
+:::
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code 스킬 경로**
+  - `~/.claude/skills/` (전역)
+  - `.claude/skills/` (프로젝트)
+  - 플러그인 제공 스킬
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex 스킬 경로**
+  - `~/.agents/skills/` (USER)
+  - `$REPO_ROOT/.agents/skills/` (REPO root)
+  - `$CWD/.agents/skills/` (REPO CWD)
+  - `/etc/codex/skills/` (ADMIN)
+
+  </Fragment>
+</Compare>
+
+## 점진적 공개 (Progressive Disclosure)
+
+스킬이 많아도 컨텍스트 윈도우를 과도하게 소비하지 않도록, Codex는 스킬을 점진적으로 공개합니다.
+
+- **시작 시**: `name` 과 `description` 만 로드됩니다 (전체 컨텍스트 예산의 약 2% 사용)
+- **호출 시**: 해당 스킬의 `SKILL.md` 본문 전체가 로드됩니다
+- **`references/` 폴더**: 명시적으로 참조될 때만 로드됩니다
+- **`assets/` 폴더**: 컨텍스트에 적재되지 않습니다
+
+이 때문에 `description` 을 명확하고 구체적으로 작성하는 것이 중요합니다. 암시적 호출 시 에이전트가 description을 기반으로 적합한 스킬을 선택하기 때문입니다.
+
+<ConceptCard title="SKILL.md 본문 길이 권장 기준">
+SKILL.md 본문은 500줄 이하로 유지하는 것이 권장됩니다. 이보다 길어지면 컨텍스트 소비가 커지므로, 긴 참조 문서는 `references/` 폴더로 분리하고 본문에서 필요 시 참조하는 방식을 사용하세요.
+</ConceptCard>
+
+## 핵심 정리
+
+- Agent Skills 표준은 Anthropic이 발원한 오픈 표준으로, Claude Code는 extension, Codex는 base spec을 따릅니다
+- SKILL.md frontmatter의 필수 필드는 `name` 과 `description` 두 가지뿐입니다
+- 스킬 디렉토리명은 `name` 필드와 반드시 일치해야 하며, lowercase hyphen-case, 64자 이하로 작성합니다
+- Codex 스킬 경로는 `.agents/skills/` 이며, `.codex/skills/` 가 아닙니다
+- 점진적 공개로 시작 시에는 name과 description만 로드되므로, description을 구체적으로 작성하는 것이 중요합니다

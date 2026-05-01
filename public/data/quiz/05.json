@@ -1,0 +1,146 @@
+[
+  {
+    "id": "q1",
+    "question": "Codex에서 모델 추론 효율을 CLI 플래그로 지정하는 방법은?",
+    "options": [
+      "codex --effort high \"task\"",
+      "codex -e high \"task\"",
+      "codex --reasoning high \"task\"",
+      "codex --model-effort high \"task\""
+    ],
+    "answer": 0,
+    "explanation": "CLI에서는 --effort 플래그로 추론 효율을 지정합니다. config.toml에서는 model_reasoning_effort = \"low|medium|high\"로 기본값을 설정할 수 있습니다."
+  },
+  {
+    "id": "q2",
+    "question": "Codex의 슬래시 커맨드 중 /permissions의 별칭(alias)은?",
+    "options": [
+      "/auth",
+      "/access",
+      "/approvals",
+      "/sandbox"
+    ],
+    "answer": 2,
+    "explanation": "/permissions는 /approvals라는 별칭을 가집니다. 이 커맨드로 현재 세션의 승인 정책과 샌드박스 설정을 확인하고 변경할 수 있습니다."
+  },
+  {
+    "id": "q3",
+    "question": "Codex MCP 서버를 config.toml에 정의하는 섹션 구문은?",
+    "options": [
+      "[mcp.<id>]",
+      "[mcp_server.<id>]",
+      "[mcp_servers.<id>]",
+      "[mcpServers.<id>]"
+    ],
+    "answer": 2,
+    "explanation": "Codex의 config.toml에서 MCP 서버는 [mcp_servers.<id>] 섹션으로 정의합니다. Claude Code의 .mcp.json에서 mcpServers 키를 사용하는 것과 다릅니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex의 기본 웹 검색 모드는?",
+    "options": [
+      "live (실시간 검색)",
+      "cached (사전 인덱싱)",
+      "disabled (비활성화)",
+      "auto (자동 선택)"
+    ],
+    "answer": 1,
+    "explanation": "Codex의 기본 웹 검색 모드는 cached입니다. 사전 인덱싱된 데이터를 사용하여 프롬프트 인젝션 위험을 줄입니다. 실시간 검색은 --search 플래그나 web_search = \"live\" 설정으로 활성화합니다."
+  },
+  {
+    "id": "q5",
+    "question": "--yolo 모드에서 웹 검색의 기본 동작은?",
+    "options": [
+      "웹 검색이 비활성화됩니다.",
+      "cached 모드로 동작합니다.",
+      "live 모드로 동작합니다.",
+      "웹 검색 설정에 영향을 주지 않습니다."
+    ],
+    "answer": 2,
+    "explanation": "--yolo 모드(--dangerously-bypass-approvals-and-sandbox)에서는 웹 검색이 기본적으로 live 모드로 동작합니다. 모든 제약이 해제되는 모드이기 때문입니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex의 Subagents 기능을 활성화하는 config.toml 설정은?",
+    "options": [
+      "features.subagents = true",
+      "features.multi_agent = true",
+      "multi_agent.enabled = true",
+      "agents.enabled = true"
+    ],
+    "answer": 1,
+    "explanation": "Subagents 기능은 features.multi_agent = true로 활성화합니다. 이 설정은 기본값이 true이므로 별도로 설정하지 않아도 됩니다."
+  },
+  {
+    "id": "q7",
+    "question": "Codex의 빌트인 Subagent 역할이 아닌 것은?",
+    "options": [
+      "default",
+      "worker",
+      "explorer",
+      "reviewer"
+    ],
+    "answer": 3,
+    "explanation": "Codex의 빌트인 Subagent 역할은 default, worker, explorer 세 가지입니다. reviewer는 빌트인이 아니며, approvals_reviewer = \"auto_review\" 설정을 통한 리뷰어 기능은 별도 개념입니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex에서 웹 검색을 완전히 비활성화하는 config.toml 설정은?",
+    "options": [
+      "web_search = false",
+      "web_search = \"off\"",
+      "web_search = \"disabled\"",
+      "disable_web_search = true"
+    ],
+    "answer": 2,
+    "explanation": "웹 검색을 비활성화하려면 config.toml에 web_search = \"disabled\"로 설정합니다. 유효한 값은 \"cached\", \"live\", \"disabled\"입니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex에서 MCP 서버를 관리하는 CLI 명령은?",
+    "options": [
+      "codex mcp-manage",
+      "codex mcp",
+      "codex servers",
+      "codex tools"
+    ],
+    "answer": 1,
+    "explanation": "codex mcp 명령으로 MCP 서버를 관리합니다 (Experimental). codex mcp-server는 Codex 자체를 MCP 서버로 노출하는 별개의 명령입니다."
+  },
+  {
+    "id": "q10",
+    "question": "Claude Code의 /effort 슬래시 커맨드에 대응하는 Codex 슬래시 커맨드는?",
+    "options": [
+      "/effort",
+      "/reasoning",
+      "/model",
+      "Codex에는 별도 슬래시 커맨드가 없고 config.toml로만 설정합니다."
+    ],
+    "answer": 2,
+    "explanation": "Codex TUI에서는 /model 슬래시 커맨드를 통해 모델을 변경할 수 있습니다. 추론 효율은 CLI --effort 플래그나 config.toml의 model_reasoning_effort로 설정합니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex MCP 서버 설정에서 특정 도구를 비활성화하는 키는?",
+    "options": [
+      "excluded_tools",
+      "blocked_tools",
+      "disabled_tools",
+      "ignore_tools"
+    ],
+    "answer": 2,
+    "explanation": "MCP 서버 설정에서 disabled_tools 키로 특정 도구를 비활성화할 수 있습니다. 반대로 enabled_tools 키로 활성화할 도구만 명시적으로 지정할 수도 있습니다."
+  },
+  {
+    "id": "q12",
+    "question": "Codex의 Profiles 기능에 대한 설명으로 올바른 것은?",
+    "options": [
+      "config.toml의 [profiles.<name>] 섹션으로 정의하며 IDE 확장도 지원합니다.",
+      "config.toml의 [profiles.<name>] 섹션으로 정의하며 Experimental 상태이고 IDE 확장은 미지원입니다.",
+      "별도 ~/.codex/profiles/ 디렉토리에 각 파일로 저장합니다.",
+      "ChatGPT 웹에서만 사용 가능한 기능입니다."
+    ],
+    "answer": 1,
+    "explanation": "Profiles는 config.toml의 [profiles.<name>] 섹션으로 정의하며, codex --profile <name> 또는 -p <name>으로 사용합니다. Experimental 상태이며 IDE 확장에서는 미지원입니다."
+  }
+]

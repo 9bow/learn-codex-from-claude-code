@@ -1,0 +1,178 @@
+---
+title: 환경 변수와 기본값 설정
+description: CODEX_HOME, 기본 모델, 텔레메트리, 히스토리 설정 등 Codex의 환경 변수와 기본값을 안내합니다.
+sidebar:
+  order: 5
+learning_objectives:
+  - "CODEX_HOME 등 주요 환경 변수의 역할을 설명할 수 있다"
+  - "history.persistence와 history.max_bytes로 히스토리를 관리할 수 있다"
+prerequisites:
+  - "config.toml 기본 구조 이해"
+estimated_minutes: 20
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex Config Advanced"
+    url: "https://developers.openai.com/codex/config-advanced"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+import Quiz from '../../../components/learning/Quiz';
+
+Claude Code는 `ANTHROPIC_API_KEY` 외에 별도의 환경 변수 설정이 거의 없었습니다. Codex는 홈 디렉터리 위치, 기본 모델, 텔레메트리, 히스토리 등 다양한 동작을 환경 변수와 config.toml 설정으로 제어할 수 있습니다.
+
+## 핵심 환경 변수
+
+### CODEX_HOME
+
+Codex가 설정 파일, 세션, 히스토리 등을 저장하는 기본 디렉터리를 변경합니다. 기본값은 `~/.codex/`입니다.
+
+```bash
+export CODEX_HOME="/data/codex"
+```
+
+이 환경 변수를 설정하면 `config.toml`, `sessions/`, `history.jsonl`, `log/` 등 모든 파일이 해당 경로로 이동합니다. 여러 환경을 분리하거나 팀 공유 드라이브를 사용할 때 유용합니다.
+
+```bash
+# 프로젝트별 독립 환경 예시
+CODEX_HOME=~/.codex-work codex
+CODEX_HOME=~/.codex-personal codex
+```
+
+### OPENAI_API_KEY
+
+API 키 인증 시 사용합니다.
+
+```bash
+export OPENAI_API_KEY="sk-proj-..."
+```
+
+config.toml의 `[env]` 섹션에 넣어 영구 설정할 수도 있습니다.
+
+## config.toml 기본값 설정
+
+### 기본 모델
+
+```toml
+# 글로벌 기본 모델
+model = "gpt-5.4"
+
+# 추론 강도 (low / medium / high)
+model_reasoning_effort = "medium"
+```
+
+CLI 실행 시 `-m` 플래그로 일시적으로 오버라이드할 수 있습니다.
+
+```bash
+codex -m gpt-5.4-mini "빠른 작업"
+codex -m gpt-5.5 "최신 모델 사용"
+```
+
+### 텔레메트리
+
+Codex는 사용 데이터를 OpenAI에 전송할 수 있습니다. 비활성화하려면:
+
+```toml
+telemetry = false
+```
+
+또는 환경 변수로:
+
+```bash
+export CODEX_DISABLE_TELEMETRY=1
+```
+
+## 히스토리 설정
+
+Codex는 대화 히스토리를 `~/.codex/history.jsonl`에 저장합니다.
+
+```toml
+[history]
+# 저장 정책: "save-all" | "none"
+persistence = "save-all"
+
+# 최대 저장 크기 (바이트)
+max_bytes = 104857600  # 100 MiB
+```
+
+| persistence 값 | 동작 |
+|----------------|------|
+| `"save-all"` | 모든 세션 히스토리 저장 (기본값) |
+| `"none"` | 히스토리 저장 안 함 (보안 환경) |
+
+`max_bytes`를 초과하면 오래된 항목부터 자동으로 정리됩니다.
+
+:::tip[히스토리 검색]
+CLI에서 `Ctrl+R`로 이전 세션 히스토리를 검색할 수 있습니다. `persistence = "save-all"`이어야 합니다.
+:::
+
+## 웹 검색 기본값
+
+```toml
+# "cached" (기본) | "live" | "disabled"
+web_search = "cached"
+```
+
+- `cached`: 사전 인덱싱된 결과 사용, 프롬프트 인젝션 위험 감소
+- `live`: 실시간 웹 검색 (`--search` 플래그와 동일)
+- `disabled`: 웹 검색 비활성화
+
+## 멀티 에이전트 기본값
+
+```toml
+[features]
+multi_agent = true  # 기본값
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800  # 30분
+```
+
+## 전체 config.toml 예시
+
+```toml
+# ~/.codex/config.toml — 권장 기본 설정
+
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+telemetry = false
+file_opener = "vscode"
+
+[env]
+OPENAI_API_KEY = "sk-proj-..."
+NODE_ENV = "development"
+
+[history]
+persistence = "save-all"
+max_bytes = 104857600
+
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800
+```
+
+<ConceptCard title="config.toml 우선순위">
+설정값 적용 우선순위는 다음과 같습니다 (낮음 → 높음):
+글로벌 `~/.codex/config.toml` → 프로젝트 `.codex/config.toml` → CLI 플래그 → 환경 변수.
+환경 변수가 가장 높은 우선순위를 가집니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- `CODEX_HOME` 환경 변수로 Codex 홈 디렉터리를 변경할 수 있습니다 (기본: `~/.codex/`)
+- `model`과 `model_reasoning_effort`로 기본 모델과 추론 강도를 설정합니다
+- `telemetry = false`로 사용 데이터 전송을 비활성화할 수 있습니다
+- `history.persistence = "save-all"`과 `history.max_bytes`로 히스토리 저장 방식을 제어합니다
+- 설정 우선순위는 글로벌 config.toml → 프로젝트 config.toml → CLI 플래그 → 환경 변수 순입니다
+
+<Quiz client:load section="04" />

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question": "Claude Code의 settings.json에서 Codex의 config.toml로 마이그레이션할 때 파일 형식 변화는?",
+    "options": [
+      "JSON → YAML",
+      "JSON → TOML",
+      "JSON → INI",
+      "JSON → XML"
+    ],
+    "answer": 1,
+    "explanation": "Claude Code의 설정 파일은 JSON 형식(settings.json)이지만, Codex의 설정 파일은 TOML 형식(config.toml)입니다. TOML은 주석 지원, 타입 명시 등에서 JSON보다 편리합니다."
+  },
+  {
+    "id": "q2",
+    "question": "Codex의 프로젝트 수준 config.toml이 로드되는 조건은?",
+    "options": [
+      "항상 자동으로 로드됩니다.",
+      "프로젝트가 trusted 상태일 때만 로드됩니다.",
+      "--project-config 플래그를 명시해야 로드됩니다.",
+      "CODEX_TRUST=true 환경 변수가 설정된 경우에만 로드됩니다."
+    ],
+    "answer": 1,
+    "explanation": "프로젝트 수준의 .codex/config.toml은 해당 프로젝트가 trusted 상태일 때만 로드됩니다. 보안상 신뢰되지 않은 프로젝트의 설정은 자동으로 적용되지 않습니다."
+  },
+  {
+    "id": "q3",
+    "question": "AGENTS.md의 override 메커니즘에서 가장 높은 우선순위를 갖는 파일은?",
+    "options": [
+      "프로젝트 루트의 AGENTS.md",
+      "CWD의 AGENTS.md",
+      "~/.codex/AGENTS.override.md",
+      "~/.codex/AGENTS.md"
+    ],
+    "answer": 2,
+    "explanation": "우선순위는 ~/.codex/AGENTS.override.md > ~/.codex/AGENTS.md > 프로젝트 루트~CWD 트리의 AGENTS.override.md / AGENTS.md 순입니다. ~/.codex/AGENTS.override.md가 가장 높은 우선순위를 가집니다."
+  },
+  {
+    "id": "q4",
+    "question": "Codex의 AGENTS.md project_doc_max_bytes 기본값은?",
+    "options": [
+      "16384 (16KiB)",
+      "32768 (32KiB)",
+      "65536 (64KiB)",
+      "131072 (128KiB)"
+    ],
+    "answer": 1,
+    "explanation": "project_doc_max_bytes의 기본값은 32768 (32KiB)입니다. 이 값을 초과하는 AGENTS.md 내용은 잘릴 수 있으므로 주의해야 합니다."
+  },
+  {
+    "id": "q5",
+    "question": "Codex에서 Hooks 기능을 활성화하기 위해 config.toml에 필요한 설정은?",
+    "options": [
+      "hooks.enabled = true",
+      "features.hooks = true",
+      "features.codex_hooks = true",
+      "enable_hooks = true"
+    ],
+    "answer": 2,
+    "explanation": "Codex의 Hooks 기능은 features.codex_hooks = true 게이트를 설정해야 활성화됩니다. 이 설정 없이는 hooks 섹션을 작성해도 동작하지 않습니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex에서 AGENTS.md의 폴백 파일명을 커스터마이즈하는 config.toml 키는?",
+    "options": [
+      "agents_doc_fallback = [\"TEAM_GUIDE.md\"]",
+      "project_doc_fallback_filenames = [\"TEAM_GUIDE.md\", \".agents.md\"]",
+      "fallback_instruction_files = [\"TEAM_GUIDE.md\"]",
+      "agents_fallback_files = [\"TEAM_GUIDE.md\"]"
+    ],
+    "answer": 1,
+    "explanation": "config.toml의 project_doc_fallback_filenames 키로 폴백 파일명을 설정합니다. 기본값은 [\"TEAM_GUIDE.md\", \".agents.md\"]입니다."
+  },
+  {
+    "id": "q7",
+    "question": "Claude Code의 권한 모드 중 Codex의 approval_policy = \"never\"와 가장 유사한 것은?",
+    "options": [
+      "default",
+      "acceptEdits",
+      "plan",
+      "auto"
+    ],
+    "answer": 3,
+    "explanation": "Claude Code의 auto 모드(모든 작업 자동 허용)가 Codex의 approval_policy = \"never\"(승인 없이 모두 실행)와 가장 유사합니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex Hooks의 인라인 설정 위치로 올바른 것은?",
+    "options": [
+      "~/.codex/hooks.json 파일에만 작성 가능합니다.",
+      "~/.codex/hooks.json 또는 config.toml의 [hooks] 섹션에 작성 가능합니다.",
+      "AGENTS.md 내부에 YAML 블록으로 작성합니다.",
+      ".codex/hooks.yaml 파일에만 작성 가능합니다."
+    ],
+    "answer": 1,
+    "explanation": "Hooks는 ~/.codex/hooks.json 파일 또는 config.toml의 [hooks] 섹션 인라인 두 가지 방식으로 설정할 수 있습니다. 프로젝트 .codex/ 디렉토리의 설정도 trusted일 때 로드됩니다."
+  },
+  {
+    "id": "q9",
+    "question": "Codex Rules와 AGENTS.md의 관계를 올바르게 설명한 것은?",
+    "options": [
+      "Codex Rules가 AGENTS.md를 완전히 대체합니다.",
+      "AGENTS.md가 Codex Rules를 완전히 대체합니다.",
+      "AGENTS.md는 자연어 지침, Codex Rules는 자동화 규칙으로 보완 관계입니다.",
+      "두 파일은 동일한 기능을 하므로 하나만 사용해야 합니다."
+    ],
+    "answer": 2,
+    "explanation": "AGENTS.md는 자연어로 작성하는 AI 지침이고, Codex Rules(developers.openai.com/codex/rules)는 특정 명령에 더 높은 권한을 부여하고 자동 실행하는 규칙입니다. 두 파일은 서로 보완 관계입니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex config.toml에서 모델을 gpt-5.4로 설정하는 올바른 구문은?",
+    "options": [
+      "model: \"gpt-5.4\"",
+      "model = 'gpt-5.4'",
+      "model = \"gpt-5.4\"",
+      "default_model = \"gpt-5.4\""
+    ],
+    "answer": 2,
+    "explanation": "TOML 형식에서는 model = \"gpt-5.4\"로 작성합니다. TOML은 JSON과 달리 따옴표 없이도 문자열을 표현하거나 작은따옴표를 사용할 수 있지만, 이중 따옴표가 표준입니다."
+  },
+  {
+    "id": "q11",
+    "question": "Claude Code의 Hooks에 없고 Codex Hooks에도 없는 이벤트 타입은?",
+    "options": [
+      "PreToolUse",
+      "PostToolUse",
+      "SessionStart",
+      "OnError"
+    ],
+    "answer": 3,
+    "explanation": "OnError는 Claude Code와 Codex 모두에 존재하지 않는 이벤트입니다. Claude Code의 Hooks 이벤트는 PreToolUse, PostToolUse, PostToolUseFailure, Stop, SessionStart, SessionEnd, UserPromptSubmit, PermissionRequest입니다."
+  }
+]

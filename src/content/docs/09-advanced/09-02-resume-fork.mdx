@@ -1,0 +1,121 @@
+---
+title: 세션 재개와 포크 — resume & fork
+description: codex resume과 codex fork로 이전 작업을 이어받거나 새 분기를 만드는 방법을 설명합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "codex resume의 --last, --all, <SESSION_ID> 옵션을 구분해서 사용할 수 있다"
+  - "codex fork로 세션을 분기하는 시나리오와 Claude Code /resume과의 차이를 설명할 수 있다"
+prerequisites:
+  - "Codex CLI 기본 사용 경험"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Reference — resume & fork"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+  - title: "Codex Config Reference — history"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 세션 저장 구조
+
+Codex는 대화 세션을 `~/.codex/sessions/` 디렉토리에 저장합니다. 각 세션은 고유한 UUID를 가지며, 히스토리 전체는 `~/.codex/history.jsonl` 파일에 순서대로 기록됩니다.
+
+```
+~/.codex/
+├── sessions/
+│   ├── 3f8a1b2c-...   # 세션 디렉토리
+│   └── 7e4d9a0f-...
+├── history.jsonl       # 전체 히스토리
+└── config.toml
+```
+
+세션 저장 동작은 `config.toml`의 `history` 설정으로 제어합니다.
+
+```toml
+[history]
+persistence = "save-all"   # "save-all" | "none"
+max_bytes = 104857600      # 100 MiB (기본값)
+```
+
+`persistence = "none"` 으로 설정하면 세션이 디스크에 저장되지 않으며, `resume`과 `fork`를 사용할 수 없습니다.
+
+## codex resume
+
+`codex resume` 명령은 저장된 이전 세션을 불러와 이어서 작업합니다.
+
+```bash
+# 가장 최근 세션 재개
+codex resume --last
+
+# 저장된 모든 세션 목록 확인 후 선택
+codex resume --all
+
+# 특정 세션 ID로 바로 재개
+codex resume 3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c
+```
+
+`codex resume --all` 을 실행하면 인터랙티브 목록이 표시되어 방향키로 세션을 탐색하고 Enter로 선택할 수 있습니다. 각 항목에는 세션 시작 시각, 첫 메시지 미리보기, 세션 ID가 함께 표시됩니다.
+
+:::tip[exec과 조합]
+비대화형 환경(CI 등)에서 이전 세션을 이어 작업할 때는 다음처럼 사용합니다.
+
+```bash
+codex exec resume --last "이전 작업에서 빠진 테스트 케이스 추가해 줘"
+```
+:::
+
+## codex fork
+
+`codex fork` 는 현재 세션을 원본으로 유지하면서 **새로운 독립 스레드** 를 생성합니다. 원본 세션의 컨텍스트를 복사해 가져오되, 이후 변경사항은 서로 영향을 주지 않습니다.
+
+```bash
+# 현재 TUI 세션 내에서 포크
+# (TUI 슬래시 커맨드가 아니라 별도 터미널에서 실행)
+codex fork
+```
+
+포크가 유용한 대표 시나리오를 정리했습니다.
+
+| 시나리오 | 설명 |
+|---------|------|
+| A/B 접근법 비교 | 같은 문제를 두 가지 방식으로 풀어 결과 비교 |
+| 실험적 리팩터링 | 원본을 안전하게 보존하며 큰 변경 시도 |
+| 여러 기능 병렬 탐색 | 공통 컨텍스트에서 각자 다른 방향으로 분기 |
+
+## Claude Code와의 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code**
+  - `/resume` 슬래시 커맨드 또는 `claude -r [id]` 플래그로 세션 재개
+  - 세션 목록 조회는 `/resume` 입력 후 UI에서 선택
+  - 포크(fork) 기능 없음 — 새 세션은 항상 빈 컨텍스트로 시작
+  - 메모리 파일(`CLAUDE.md`)로 컨텍스트 지속성 보완
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex**
+  - `codex resume --last / --all / <ID>` 로 세션 재개
+  - `codex fork` 로 현재 세션에서 독립 분기 생성
+  - 포크한 스레드는 원본과 컨텍스트를 공유하나 변경사항은 독립
+  - `history.persistence = "none"` 설정 시 재개/포크 불가
+
+  </Fragment>
+</Compare>
+
+:::note[참고]
+Codex Desktop App에서는 프로젝트별 스레드 목록이 UI에서 직접 보이며, 포크도 버튼 한 번으로 가능합니다. CLI보다 세션 관리가 시각적으로 훨씬 편리합니다.
+:::
+
+## 핵심 정리
+
+- 세션은 `~/.codex/sessions/`에 저장되고, `history.persistence = "save-all"`이 기본값입니다
+- `codex resume --last` 는 가장 최근 세션을, `--all` 은 목록에서 선택, `<ID>` 는 직접 지정으로 재개합니다
+- `codex fork` 는 원본을 보존하면서 새 독립 스레드를 만들어 실험적 작업에 유용합니다
+- Claude Code의 `/resume` 대비 Codex는 **fork** 기능이 추가되어 더 풍부한 세션 관리를 제공합니다
+- CI 환경에서는 `codex exec resume --last "..."` 패턴으로 이전 세션을 이어갈 수 있습니다

@@ -1,0 +1,137 @@
+---
+title: 멀티 에이전트 오케스트레이션
+description: Codex의 spawn_agent 등 멀티 에이전트 도구와 [agents] 설정으로 병렬 작업을 조율하는 방법을 설명합니다.
+sidebar:
+  order: 4
+learning_objectives:
+  - "spawn_agent, send_input, resume_agent, wait_agent, close_agent 도구의 역할을 구분할 수 있다"
+  - ".toml 에이전트 정의 파일을 작성하고 [agents] 한도를 설정할 수 있다"
+prerequisites:
+  - "Codex 기본 사용 경험"
+  - "subagents 개념 이해 (05-feature-mapping 섹션 참고)"
+estimated_minutes: 30
+references:
+  - title: "Codex Subagents"
+    url: "https://developers.openai.com/codex/subagents"
+    accessed: "2026-05-01"
+  - title: "Codex Config Advanced"
+    url: "https://developers.openai.com/codex/config-advanced"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 멀티 에이전트 개요
+
+Codex는 `features.multi_agent = true` (기본값)일 때 에이전트가 다른 에이전트를 동적으로 생성하고 조율할 수 있습니다. 오케스트레이터 에이전트가 작업을 쪼개 워커 에이전트에게 분배하고, 결과를 취합하는 방식입니다.
+
+빌트인 에이전트 역할은 세 가지입니다.
+
+| 역할 | 설명 |
+|------|------|
+| `default` | 일반 대화 및 코딩 에이전트 |
+| `worker` | 오케스트레이터로부터 작업을 할당받는 워커 |
+| `explorer` | 파일 탐색 및 정보 수집 특화 |
+
+## 멀티 에이전트 도구
+
+오케스트레이터 에이전트는 다음 다섯 가지 도구로 서브 에이전트를 제어합니다.
+
+| 도구 | 역할 |
+|------|------|
+| `spawn_agent` | 새 에이전트 스레드를 생성하고 초기 프롬프트 전달 |
+| `send_input` | 실행 중인 에이전트에 추가 입력 전달 |
+| `resume_agent` | 일시 정지된 에이전트를 재개 |
+| `wait_agent` | 에이전트가 완료될 때까지 대기 (결과 수신) |
+| `close_agent` | 에이전트 스레드를 종료 |
+
+<ConceptCard title="spawn_agents_on_csv — 배치 생성">
+CSV 파일의 각 행을 별도 에이전트에 할당해 대량 병렬 처리를 수행하는 패턴이 있습니다.
+
+```
+# tasks.csv
+file,task
+src/auth.ts,보안 취약점 분석
+src/api.ts,성능 최적화 포인트 찾기
+src/db.ts,SQL 인젝션 위험 검토
+```
+
+오케스트레이터 프롬프트에서 `spawn_agents_on_csv tasks.csv` 를 지시하면 각 행마다 독립 에이전트가 생성됩니다.
+</ConceptCard>
+
+## 에이전트 정의 파일 (.toml)
+
+재사용할 에이전트는 `~/.codex/agents/<name>.toml` 또는 프로젝트 `.codex/agents/<name>.toml`에 정의합니다.
+
+```toml
+# .codex/agents/reviewer.toml
+name = "reviewer"
+description = "보안 및 코드 품질 리뷰 전문 에이전트"
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+당신은 시니어 보안 엔지니어입니다.
+코드를 읽고 보안 취약점, 잠재적 버그, 개선 포인트를 찾아 명확하게 보고하세요.
+코드를 직접 수정하지 말고 리뷰 코멘트만 작성하세요.
+"""
+```
+
+```toml
+# .codex/agents/implementer.toml
+name = "implementer"
+description = "테스트 케이스 기반 구현 전문 에이전트"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+주어진 테스트 케이스를 통과하는 최소한의 코드를 구현하세요.
+기존 코드 스타일을 유지하고, 불필요한 추상화를 추가하지 마세요.
+"""
+```
+
+## [agents] 한도 설정
+
+멀티 에이전트 동작의 상한선은 `config.toml`의 `[agents]` 섹션에서 설정합니다.
+
+```toml
+[agents]
+max_threads = 6          # 동시 실행 최대 에이전트 수 (기본 6)
+max_depth = 1            # 에이전트 중첩 깊이 (기본 1 — 2단계까지)
+job_max_runtime_seconds = 1800  # 에이전트 최대 실행 시간 (기본 30분)
+```
+
+:::caution[max_depth 주의]
+`max_depth = 1` 은 오케스트레이터(깊이 0)가 워커(깊이 1)를 생성할 수 있지만, 워커가 추가로 에이전트를 생성하는 것은 허용하지 않습니다. 복잡한 계층 구조가 필요하면 값을 높이되, 무한 루프 위험에 주의하세요.
+:::
+
+## Claude Code Task 도구와의 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code**
+  - `Task` 도구로 서브에이전트 생성 (단일 호출, 결과 반환)
+  - `.claude/agents/<name>.md` 에 에이전트 정의 (Markdown + YAML frontmatter)
+  - Agent teams는 oh-my-claudecode 같은 외부 레이어에서 조율
+  - `tools`, `model`, `skills` 필드를 frontmatter에 선언
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex**
+  - `spawn_agent` / `wait_agent` 등 생명주기 전체를 에이전트가 직접 제어
+  - `.codex/agents/<name>.toml` 에 에이전트 정의 (TOML)
+  - `[agents]` 섹션으로 한도(스레드 수, 깊이, 타임아웃) 설정
+  - `/agent` 슬래시 커맨드로 TUI에서 스레드 간 전환 가능
+
+  </Fragment>
+</Compare>
+
+## 핵심 정리
+
+- `features.multi_agent = true` (기본값)로 멀티 에이전트가 활성화됩니다
+- `spawn_agent` 로 에이전트를 생성하고, `wait_agent` 로 결과를 수집하며, `close_agent` 로 종료합니다
+- 에이전트 정의는 `.codex/agents/<name>.toml` 파일로 관리합니다
+- `[agents]` 섹션에서 `max_threads`, `max_depth`, `job_max_runtime_seconds` 한도를 설정합니다
+- Claude Code의 `Task` 도구 대비 Codex는 에이전트 **생명주기 전체** 를 세밀하게 제어할 수 있습니다
+- `/agent` 슬래시 커맨드로 TUI에서 실행 중인 스레드를 전환할 수 있습니다

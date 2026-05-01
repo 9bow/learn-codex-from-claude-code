@@ -1,0 +1,144 @@
+---
+title: 큐레이트 스킬 라이브러리
+description: github.com/openai/skills의 공식 큐레이트 스킬 카탈로그와 설치 방법을 소개합니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "openai/skills 리포지토리의 주요 스킬을 카테고리별로 파악할 수 있다"
+  - "$skill-installer를 사용하여 스킬을 설치할 수 있다"
+prerequisites:
+  - "Agent Skills 표준 기초 (06-01 챕터)"
+  - "Codex CLI 설치 완료"
+estimated_minutes: 25
+references:
+  - title: "OpenAI Skills Repository"
+    url: "https://github.com/openai/skills"
+    accessed: "2026-05-01"
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 큐레이트 스킬 라이브러리란
+
+OpenAI는 `github.com/openai/skills` 리포지토리에서 공식 큐레이트 스킬 모음을 관리합니다. 이 스킬들은 `.curated/` 폴더 아래에 위치하며, 실무에서 자주 필요한 작업들을 즉시 사용할 수 있도록 구성되어 있습니다.
+
+Claude Code 사용자라면 유사한 스킬을 직접 작성하거나 플러그인으로 설치했을 것입니다. Codex에서는 이 라이브러리에서 바로 가져와 사용할 수 있습니다.
+
+## 카테고리별 스킬 목록
+
+### 개발 도구
+
+| 스킬 | 설명 |
+|------|------|
+| `develop-web-game` | 웹 게임 개발을 위한 반복적 빌드/테스트 루프 |
+| `openai-docs` | OpenAI 공식 문서 참조 및 API 사용 지원 |
+
+### 디자인 및 시각화
+
+| 스킬 | 설명 |
+|------|------|
+| `figma-implement-design` | Figma 디자인을 코드로 구현 |
+| `imagegen` | 내장 `gpt-image-2` 를 사용한 이미지 생성 |
+
+### 프로젝트 관리
+
+| 스킬 | 설명 |
+|------|------|
+| `linear` | Linear 이슈 생성, 조회, 업데이트 |
+
+### 배포
+
+| 스킬 | 설명 |
+|------|------|
+| `cloudflare-deploy` | Cloudflare Workers/Pages 배포 |
+| `netlify-deploy` | Netlify 배포 |
+| `render-deploy` | Render 배포 |
+| `vercel-deploy` | Vercel 배포 |
+
+### 문서 및 데이터
+
+| 스킬 | 설명 |
+|------|------|
+| `pdf` | PDF 파일 읽기 및 분석 |
+| `spreadsheet` | 스프레드시트 데이터 처리 |
+| `doc` | 문서 작성 및 편집 지원 |
+
+## $skill-installer로 스킬 설치하기
+
+Codex에는 스킬을 설치하는 시스템 스킬 `$skill-installer` 가 내장되어 있습니다. 프롬프트에 다음과 같이 입력하면 됩니다.
+
+```
+$skill-installer linear
+```
+
+Codex가 `github.com/openai/skills` 에서 해당 스킬을 찾아 `~/.agents/skills/` 또는 현재 프로젝트의 `.agents/skills/` 에 설치합니다.
+
+여러 스킬을 한 번에 설치할 수도 있습니다.
+
+```
+$skill-installer vercel-deploy netlify-deploy
+```
+
+### 설치 위치 확인
+
+```bash
+# 전역 설치 확인
+ls ~/.agents/skills/
+
+# 프로젝트 설치 확인
+ls .agents/skills/
+```
+
+<ConceptCard title="$skill-creator: 새 스킬 만들기">
+`$skill-creator` 는 새 스킬을 대화형으로 생성해주는 시스템 스킬입니다. 스킬의 목적과 동작을 설명하면 Codex가 올바른 구조의 스킬 파일을 생성합니다.
+
+```
+$skill-creator
+```
+
+생성된 스킬은 `.agents/skills/` 에 저장되며, `agents/openai.yaml` 도 함께 생성됩니다. 처음 스킬을 작성할 때 참고 템플릿으로 활용하기 좋습니다.
+</ConceptCard>
+
+## 스킬 활용 예시: linear
+
+```
+$skill-installer linear
+```
+
+설치 후 프로젝트의 `.agents/skills/linear/` 디렉토리가 생성됩니다. 이후 Codex에서 다음과 같이 사용합니다.
+
+```
+$linear 이번 스프린트의 미완료 이슈 목록을 가져와줘
+```
+
+또는 `/skills` 선택기에서 linear를 선택합니다.
+
+:::note[참고]
+`linear` 스킬은 Linear MCP 서버에 의존합니다. 스킬 사용 전에 `~/.codex/config.toml` 에 Linear MCP 서버를 설정하고, `LINEAR_API_KEY` 환경 변수를 준비해야 합니다. `agents/openai.yaml` 의 `dependencies.tools` 섹션이 이 의존성을 명시합니다.
+:::
+
+## Claude Code 플러그인 스킬과의 차이
+
+Claude Code에서는 플러그인이 `.claude/skills/` 에 스킬을 추가하는 방식으로 스킬을 배포했습니다. Codex에서는 `github.com/openai/skills` 리포지토리가 그 역할을 합니다.
+
+| 항목 | Claude Code | Codex |
+|------|-------------|-------|
+| 스킬 배포 | 플러그인, 직접 작성 | openai/skills, 직접 작성 |
+| 설치 도구 | 없음 (수동 복사) | `$skill-installer` |
+| 생성 도구 | 없음 | `$skill-creator` |
+| 관리 UI | 없음 | Desktop App 스킬 관리 UI |
+
+:::tip[팁]
+`$skill-installer` 를 사용하기 전에 먼저 `github.com/openai/skills` 리포지토리를 직접 탐색해보세요. 각 스킬의 `SKILL.md` 와 `agents/openai.yaml` 을 읽으면 어떤 설정이 필요한지 미리 파악할 수 있습니다.
+:::
+
+## 핵심 정리
+
+- `github.com/openai/skills` 는 OpenAI가 관리하는 공식 큐레이트 스킬 리포지토리입니다
+- 배포, 디자인, 문서, 프로젝트 관리 등 실무 카테고리의 스킬이 포함되어 있습니다
+- `$skill-installer <이름>` 으로 스킬을 간편하게 설치할 수 있습니다
+- `$skill-creator` 시스템 스킬로 새 스킬을 대화형으로 생성할 수 있습니다
+- MCP 의존성이 있는 스킬(linear 등)은 사전에 MCP 서버 설정이 필요합니다

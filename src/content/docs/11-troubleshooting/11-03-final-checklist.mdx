@@ -1,0 +1,151 @@
+---
+title: 최종 마이그레이션 체크리스트
+description: Claude Code에서 Codex로의 전환을 완료하기 위한 단계별 최종 체크리스트입니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "마이그레이션 완료 여부를 체크리스트로 자가 점검할 수 있다"
+  - "이후 지속적인 학습과 커뮤니티 참여 경로를 파악할 수 있다"
+prerequisites:
+  - "이 가이드의 이전 섹션들을 순서대로 완료"
+estimated_minutes: 20
+references:
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+import Quiz from '../../../components/learning/Quiz';
+
+## 마이그레이션 체크리스트
+
+아래 항목을 하나씩 확인하며 마이그레이션 완료 여부를 점검하세요.
+
+### 1. 설치 및 인증
+
+- [ ] Codex CLI가 설치되어 있다 (`codex --version` 실행 확인)
+- [ ] OpenAI 계정으로 인증 완료 (`codex auth status` 확인)
+- [ ] API Key 또는 ChatGPT 인증 중 하나 이상 설정되어 있다
+- [ ] 원하는 모델이 현재 플랜에서 사용 가능한지 확인했다
+
+### 2. 글로벌 설정
+
+- [ ] `~/.codex/config.toml`에 기본 모델과 reasoning effort가 설정되어 있다
+- [ ] `approval_policy`와 `sandbox_mode`가 작업 성격에 맞게 설정되어 있다
+- [ ] `~/.codex/AGENTS.md`에 개인 선호 지침이 작성되어 있다 (선택)
+- [ ] 필요하다면 Profiles (`[profiles.<name>]`)가 정의되어 있다
+
+### 3. 프로젝트 설정
+
+- [ ] 프로젝트 루트에 `AGENTS.md`가 작성되어 있다
+- [ ] `.codex/config.toml`에 프로젝트별 설정이 정의되어 있다
+- [ ] project trust를 승인했다 (처음 실행 시 `y` 입력)
+- [ ] `AGENTS.md` 내용이 에이전트에 반영되는 것을 확인했다
+
+### 4. Permissions / Approval 정책
+
+- [ ] `approval_policy`가 프로젝트 요구사항에 맞게 설정되어 있다
+- [ ] `sandbox_mode`가 필요한 파일 접근 수준을 허용한다
+- [ ] 팀 환경이라면 Codex Rules를 통해 공통 정책이 정의되어 있다
+- [ ] `--yolo`를 습관적으로 사용하지 않도록 주의하고 있다
+
+### 5. Skills 이전
+
+- [ ] Claude Code `.claude/skills/`의 스킬 목록을 파악했다
+- [ ] 이전할 스킬의 `SKILL.md`를 Agent Skills 표준으로 변환했다
+  - Claude Code 전용 frontmatter 필드 제거 (`disable-model-invocation` 등)
+  - `name`, `description` 필수 필드 유지
+- [ ] 스킬을 `~/.agents/skills/<name>/` 또는 `.agents/skills/<name>/`에 배치했다
+- [ ] `codex`에서 `/skills`로 스킬이 인식되는 것을 확인했다
+
+### 6. Hooks 이전
+
+- [ ] Claude Code `settings.json`의 hooks 목록을 파악했다
+- [ ] `config.toml`에 `[features] codex_hooks = true`를 설정했다
+- [ ] hooks를 `[[hooks.PreToolUse]]` 등 Codex 형식으로 변환했다
+- [ ] hooks가 실제로 실행되는 것을 `~/.codex/log/codex-tui.log`로 확인했다
+
+### 7. MCP 이전
+
+- [ ] Claude Code `.mcp.json`의 MCP 서버 목록을 파악했다
+- [ ] `config.toml`의 `[mcp_servers.<id>]` 형식으로 변환했다
+- [ ] 각 서버의 인증 토큰/환경 변수가 올바르게 설정되어 있다
+- [ ] `codex`에서 MCP 도구가 정상 동작하는 것을 확인했다
+
+### 8. Subagents / CI
+
+- [ ] 필요한 에이전트 정의를 `.codex/agents/<name>.toml`로 작성했다
+- [ ] `[agents]` 한도 (`max_threads`, `max_depth`, `job_max_runtime_seconds`)가 설정되어 있다
+- [ ] CI 환경(GitHub Actions 등)에서 `codex exec --json` 파이프라인을 테스트했다
+- [ ] `history.persistence` 설정이 세션 재개 요구사항에 맞게 설정되어 있다
+
+### 9. 팀 환경 (해당하는 경우)
+
+- [ ] `.codex/config.toml`을 저장소에 체크인했다 (민감 정보 미포함 확인)
+- [ ] `AGENTS.md`가 저장소에 체크인되어 팀원 모두가 사용할 수 있다
+- [ ] 팀 공용 스킬이 `.agents/skills/`에 체크인되어 있다
+- [ ] `AGENTS.override.md`가 `.gitignore`에 추가되어 있다
+
+---
+
+<ConceptCard title="마이그레이션 완료 후 검증 방법">
+모든 항목을 체크했다면 실제 작업을 통해 검증합니다.
+
+```bash
+# 1. 기본 실행 확인
+codex "현재 프로젝트 구조를 간략히 설명해 줘"
+
+# 2. 스킬 인식 확인
+# TUI에서: /skills
+
+# 3. 세션 저장/재개 확인
+codex resume --last
+
+# 4. 멀티 에이전트 확인 (설정한 경우)
+codex "두 에이전트를 사용해서 src/ 디렉토리의 타입 오류를 병렬로 찾아줘"
+```
+</ConceptCard>
+
+## 다음 단계
+
+마이그레이션을 완료했다면 다음 활동을 통해 계속 성장하세요.
+
+### 공식 문서 정기 확인
+
+Codex와 Claude Code는 빠르게 발전합니다. 주요 업데이트를 놓치지 않으려면 아래를 북마크하세요.
+
+- [developers.openai.com/codex/cli/features](https://developers.openai.com/codex/cli/features) — Codex 새 기능
+- [github.com/openai/codex/releases](https://github.com/openai/codex/releases) — CLI 릴리스 노트
+- [github.com/openai/skills](https://github.com/openai/skills) — 새로운 공식 스킬
+
+### 커뮤니티 참여
+
+- **GitHub Discussions** (`github.com/openai/codex/discussions`) — 사용 사례 공유, 질문
+- **OpenAI Community Forum** (`community.openai.com`) — 트러블슈팅, 팁 교환
+- **이 가이드 기여** (`github.com/9bow/learn-codex-from-claude-code`) — 오류 제보, 내용 개선 PR
+
+### 고급 주제 탐색
+
+이 가이드를 완료했다면 다음 주제를 직접 실험해 보세요.
+
+| 주제 | 참고 섹션 |
+|------|---------|
+| Codex Cloud로 백그라운드 작업 자동화 | [09-03](/learn-codex-from-claude-code/09-advanced/09-03-codex-cloud/) |
+| 멀티 에이전트 병렬 처리 파이프라인 | [09-04](/learn-codex-from-claude-code/09-advanced/09-04-multi-agent-orchestration/) |
+| Claude + Codex 역할 분담 워크플로 | [10-03](/learn-codex-from-claude-code/10-scenarios/10-03-coexistence/) |
+| 나만의 스킬 제작 및 공개 | [06-skills](/learn-codex-from-claude-code/06-skills/) |
+
+## 핵심 정리
+
+- 체크리스트의 9개 카테고리를 순서대로 점검하면 마이그레이션 누락 항목을 발견할 수 있습니다
+- `codex resume --last`와 `/skills` 커맨드로 핵심 기능이 동작하는지 빠르게 검증하세요
+- Codex는 빠르게 업데이트되므로 공식 문서와 릴리스 노트를 정기적으로 확인하는 것이 중요합니다
+- GitHub Discussions와 커뮤니티 포럼에서 다른 사용자의 경험을 참고하고 자신의 사례도 공유하세요
+- 마이그레이션은 끝이 아니라 시작입니다. Codex의 고급 기능을 하나씩 실험하며 워크플로를 발전시켜 나가세요
+
+<Quiz client:load section="11" />

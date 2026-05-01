@@ -1,0 +1,259 @@
+---
+title: 1:1 매핑이 가능한 영역
+description: Models, MCP, Hooks 개념, Subagents, Slash Commands 등 Claude Code에서 Codex로 직접 대응되는 영역을 정리합니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "전환 시 최소한의 수정으로 재사용 가능한 개념과 파일을 파악할 수 있다"
+  - "MCP 서버 설정을 Claude Code 형식에서 Codex TOML 형식으로 변환할 수 있다"
+prerequisites:
+  - "02-02 명령어·파일·디렉토리 대응 표"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex Subagents"
+    url: "https://developers.openai.com/codex/subagents"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## 전환이 쉬운 영역
+
+모든 것이 달라지는 것은 아닙니다. 개념 자체는 동일하고 **문법이나 위치만 바뀌는** 영역이 있습니다. 이 챕터에서는 그런 "쉬운 전환" 영역을 다룹니다.
+
+## 모델 설정
+
+모델을 지정하는 방법만 다를 뿐, 개념은 동일합니다.
+
+<Compare>
+  <Fragment slot="left">
+```json
+// ~/.claude/settings.json
+{
+  "model": "claude-sonnet-4-6"
+}
+```
+
+슬래시 커맨드로 변경:
+```
+/model
+→ 목록에서 선택
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```toml
+# ~/.codex/config.toml
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+```
+
+슬래시 커맨드로 변경:
+```
+/model
+→ 목록에서 선택
+```
+
+  </Fragment>
+</Compare>
+
+추론 노력(effort) 설정:
+
+| Claude Code | Codex |
+|-------------|-------|
+| `/effort low` | `model_reasoning_effort = "low"` |
+| `/effort medium` | `model_reasoning_effort = "medium"` |
+| `/effort high` | `model_reasoning_effort = "high"` |
+
+:::tip[팁]
+Claude Code의 `/effort` 슬래시 커맨드는 Codex에는 없습니다. `config.toml` 에 직접 설정하거나 프로필별로 지정하세요.
+:::
+
+## MCP 서버
+
+MCP(Model Context Protocol) 개념 자체는 완전히 동일합니다. **설정 파일 위치와 형식** 만 다릅니다.
+
+<Compare>
+  <Fragment slot="left">
+```json
+// ~/.claude.json 또는 .mcp.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```toml
+# ~/.codex/config.toml
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+enabled = true
+
+[mcp_servers.github.env]
+GITHUB_TOKEN = "${GITHUB_TOKEN}"
+```
+
+  </Fragment>
+</Compare>
+
+Codex MCP 서버 설정에서 추가로 사용 가능한 키:
+
+```toml
+[mcp_servers.my-server]
+command = "node"
+args = ["./server.js"]
+cwd = "/path/to/server"
+enabled = true
+enabled_tools = ["tool1", "tool2"]   # 허용할 도구만 지정
+disabled_tools = ["dangerous-tool"]  # 특정 도구 비활성화
+bearer_token_env_var = "MY_TOKEN"    # 인증 토큰 환경변수
+```
+
+:::note[참고]
+Codex는 `codex mcp` 명령으로 MCP 서버를 관리할 수 있습니다 (Experimental). 또한 `codex mcp-server` 로 Codex 자체를 MCP 서버로 노출할 수 있습니다.
+:::
+
+## Hooks 개념
+
+Hooks의 **개념** 은 동일합니다. 둘 다 특정 이벤트가 발생할 때 외부 명령을 실행합니다. 형식과 지원 이벤트가 다를 뿐입니다.
+
+<Compare>
+  <Fragment slot="left">
+```json
+// ~/.claude/settings.json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 .claude/hooks/policy.py"
+      }]
+    }]
+  }
+}
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```toml
+# ~/.codex/config.toml
+[features]
+codex_hooks = true
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 .codex/hooks/policy.py"
+timeout = 30
+statusMessage = "Checking Bash command"
+```
+
+  </Fragment>
+</Compare>
+
+hook 스크립트 자체의 입출력 프로토콜도 유사하므로, 기존 Claude Code hook 스크립트를 소폭 수정해 재사용할 수 있는 경우가 많습니다.
+
+## Subagents
+
+Subagents 개념도 동일합니다. 에이전트가 하위 에이전트를 생성해 병렬 작업을 수행합니다. **정의 파일 형식과 위치** 가 다릅니다.
+
+<Compare>
+  <Fragment slot="left">
+```markdown
+---
+# .claude/agents/reviewer.md
+name: reviewer
+description: 코드 리뷰 전문 에이전트
+model: claude-sonnet-4-6
+tools:
+  - Read
+  - Bash
+---
+
+당신은 코드 리뷰어입니다...
+```
+
+  </Fragment>
+  <Fragment slot="right">
+```toml
+# ~/.codex/agents/reviewer.toml
+name = "reviewer"
+description = "코드 리뷰 전문 에이전트"
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+당신은 코드 리뷰어입니다...
+"""
+```
+
+  </Fragment>
+</Compare>
+
+Codex subagent 제한:
+
+```toml
+# config.toml
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800
+```
+
+빌트인 역할: `default`, `worker`, `explorer`
+
+TUI에서 `/agent` 슬래시 커맨드로 에이전트 스레드를 전환할 수 있습니다.
+
+## Slash 커맨드 (공통)
+
+TUI에서 사용하는 슬래시 커맨드 중 두 도구 모두 지원하는 것들:
+
+| 커맨드 | Claude Code | Codex |
+|--------|-------------|-------|
+| `/model` | 모델 변경 | 모델 변경 |
+| `/permissions` | 권한 확인·수정 | 승인 정책 확인 (`/approvals` alias) |
+| `/clear` | 대화 초기화 | 대화 초기화 (Ctrl+L) |
+
+<ConceptCard title="AGENTS.md 자연어 지침">
+`CLAUDE.md` 의 자연어 지침 내용은 `AGENTS.md` 로 거의 그대로 복사해도 잘 동작합니다. 두 파일 모두 자연어로 에이전트 동작을 지시하는 파일이기 때문입니다.
+
+다만 Claude Code 전용 문법(예: 특정 slash 커맨드 호출 지시)이 포함된 경우 해당 부분만 제거하거나 수정하면 됩니다.
+</ConceptCard>
+
+## OSS 모델과 대체 프로바이더
+
+두 도구 모두 공식 모델 외에 대체 프로바이더를 지원합니다.
+
+| 기능 | Claude Code | Codex |
+|------|-------------|-------|
+| Ollama/로컬 모델 | — | `codex --oss` |
+| Amazon Bedrock | — | `model_provider = "amazon-bedrock"` |
+| OpenAI 호환 엔드포인트 | — | `model_provider` 설정 |
+
+## 핵심 정리
+
+- **모델 설정** 은 JSON에서 TOML로 형식만 바뀌며, 개념은 동일합니다
+- **MCP 서버** 는 `mcpServers` JSON에서 `[mcp_servers.<id>]` TOML로 변환하면 됩니다
+- **Hooks 개념** 은 동일하므로 스크립트 로직은 대부분 재사용 가능합니다
+- **Subagents** 는 Markdown+YAML에서 TOML 정의 파일로 바뀌지만 역할은 동일합니다
+- **`/model`** 과 **`/permissions`** 슬래시 커맨드는 두 도구 모두 지원합니다
+- `CLAUDE.md` 의 자연어 지침은 `AGENTS.md` 로 복사해 그대로 활용할 수 있습니다

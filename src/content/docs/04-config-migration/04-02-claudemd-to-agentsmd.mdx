@@ -1,0 +1,155 @@
+---
+title: CLAUDE.md에서 AGENTS.md로
+description: Claude Code의 CLAUDE.md 지침 파일을 Codex의 AGENTS.md로 변환하는 방법과 우선순위 차이를 설명합니다.
+sidebar:
+  order: 2
+learning_objectives:
+  - "CLAUDE.md와 AGENTS.md의 우선순위 체계 차이를 설명할 수 있다"
+  - "기존 CLAUDE.md를 AGENTS.md 형식으로 변환할 수 있다"
+prerequisites:
+  - "CLAUDE.md 작성 경험"
+  - "settings.json → config.toml 변환 이해"
+estimated_minutes: 30
+references:
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-01"
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Claude Code에서 `CLAUDE.md`는 AI에게 프로젝트 컨텍스트와 행동 지침을 제공하는 핵심 파일이었습니다. Codex에서는 같은 역할을 `AGENTS.md`가 담당합니다. 파일명만 바뀐 것이 아니라 **우선순위 체계** 와 **로딩 방식** 도 달라졌습니다.
+
+## 파일 위치와 우선순위 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code 우선순위 (낮음 → 높음)**
+  1. `~/.claude/CLAUDE.md` (user)
+  2. `./CLAUDE.md` 또는 `./.claude/CLAUDE.md` (project)
+  3. `./CLAUDE.local.md` (local, git 제외)
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex 우선순위 (낮음 → 높음)**
+  1. `~/.codex/AGENTS.md` (base)
+  2. 프로젝트 루트 → CWD 트리의 `AGENTS.md` (concat)
+  3. `~/.codex/AGENTS.override.md` (최우선)
+  4. 프로젝트 `AGENTS.override.md` (최우선)
+
+  </Fragment>
+</Compare>
+
+:::caution[중요한 차이]
+Codex는 루트에서 CWD까지의 모든 `AGENTS.md` 파일을 **순서대로 합쳐서** 읽습니다. 하위 디렉터리의 파일이 상위 파일보다 우선됩니다. Claude Code의 로컬 오버라이드(`CLAUDE.local.md`)와 달리, Codex는 `AGENTS.override.md`가 별도 오버라이드 역할을 합니다.
+:::
+
+## 전체 우선순위 순서
+
+```
+낮음 ────────────────────────────────────────── 높음
+~/.codex/AGENTS.md
+  → /repo-root/AGENTS.md
+    → /repo-root/subdir/AGENTS.md
+      → /repo-root/subdir/cwd/AGENTS.md
+        → /repo-root/.../AGENTS.override.md  (CWD에 가까울수록 높음)
+          → ~/.codex/AGENTS.override.md      (글로벌 최우선)
+```
+
+## 주요 설정 옵션
+
+### project_doc_max_bytes
+
+AGENTS.md 파일의 최대 로드 크기를 제한합니다. 기본값은 32KiB입니다.
+
+```toml
+# ~/.codex/config.toml
+project_doc_max_bytes = 32768  # 32 KiB (기본값)
+```
+
+대용량 AGENTS.md를 사용하는 경우 값을 늘릴 수 있지만, 컨텍스트 예산을 고려해야 합니다.
+
+### project_doc_fallback_filenames
+
+`AGENTS.md`라는 파일명 대신 다른 파일명을 사용하고 싶을 때 설정합니다.
+
+```toml
+project_doc_fallback_filenames = ["TEAM_GUIDE.md", ".agents.md"]
+```
+
+이 설정이 있으면 Codex는 `AGENTS.md`를 찾지 못했을 때 지정된 파일명으로 대체 탐색합니다.
+
+## 실전 변환 예시
+
+### 기존 CLAUDE.md
+
+```markdown
+# 프로젝트 가이드
+
+## 코딩 규칙
+- TypeScript strict 모드 사용
+- 함수형 컴포넌트만 사용 (클래스 컴포넌트 금지)
+- 테스트 파일은 `__tests__` 디렉터리에 배치
+
+## 커밋 규칙
+- Conventional Commits 형식 준수
+- 커밋 전 `pnpm lint && pnpm test` 실행
+
+## 금지 사항
+- `console.log` 프로덕션 코드에 사용 금지
+- 직접 DOM 조작 금지
+```
+
+### 변환된 AGENTS.md
+
+```markdown
+# 프로젝트 가이드
+
+## 코딩 규칙
+- TypeScript strict 모드 사용
+- 함수형 컴포넌트만 사용 (클래스 컴포넌트 금지)
+- 테스트 파일은 `__tests__` 디렉터리에 배치
+
+## 커밋 규칙
+- Conventional Commits 형식 준수
+- 커밋 전 `pnpm lint && pnpm test` 실행
+
+## 금지 사항
+- `console.log` 프로덕션 코드에 사용 금지
+- 직접 DOM 조작 금지
+```
+
+:::tip[내용은 거의 그대로 이전 가능]
+AGENTS.md의 본문 내용은 자연어 마크다운이므로 CLAUDE.md 내용을 거의 그대로 복사해 사용할 수 있습니다. 파일명만 바꾸면 기본 동작은 유지됩니다.
+:::
+
+## 디렉터리별 AGENTS.md 활용
+
+Codex의 concat 방식을 활용하면 디렉터리별로 세분화된 지침을 줄 수 있습니다.
+
+```
+project/
+├── AGENTS.md          ← 프로젝트 전체 공통 규칙
+├── frontend/
+│   └── AGENTS.md      ← 프론트엔드 특화 규칙 (추가됨)
+└── backend/
+    └── AGENTS.md      ← 백엔드 특화 규칙 (추가됨)
+```
+
+CWD가 `frontend/`일 때는 프로젝트 루트 + `frontend/` AGENTS.md가 합쳐져 로드됩니다.
+
+<ConceptCard title="AGENTS.override.md 활용 시나리오">
+팀원들이 공유하는 `AGENTS.md`는 git에 커밋하고, 개인 규칙은 `~/.codex/AGENTS.override.md`에 작성하세요. 개인 override는 모든 프로젝트에서 최우선 적용되므로 팀 규칙을 유지하면서 개인 작업 스타일을 추가할 수 있습니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- `CLAUDE.md` → `AGENTS.md`로 파일명이 변경되었으며 내용은 대부분 그대로 이전 가능합니다
+- Codex는 루트에서 CWD까지 모든 `AGENTS.md`를 concat하므로 디렉터리별 세분화가 가능합니다
+- `AGENTS.override.md`는 개인 또는 팀의 최우선 오버라이드 파일입니다
+- `project_doc_max_bytes`로 로드 크기를 제한하고, `project_doc_fallback_filenames`로 대체 파일명을 지정할 수 있습니다
+- 글로벌 `~/.codex/AGENTS.override.md`는 모든 프로젝트에서 가장 높은 우선순위를 가집니다

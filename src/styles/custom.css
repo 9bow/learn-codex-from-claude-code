@@ -1,0 +1,81 @@
+/* 한국어 타이포그래피 최적화 */
+:root {
+  --sl-font: 'Pretendard Variable', 'Pretendard', -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI',
+    'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --sl-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* Pretendard 웹폰트 로드 */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/woff2/PretendardVariable.woff2') format('woff2-variations');
+}
+
+/* 반응형 테이블 */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+.sl-markdown-content table th,
+.sl-markdown-content table td {
+  white-space: normal;
+}
+
+/* 컨셉 카드 (펼치기) */
+.concept-card {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: var(--sl-color-gray-7);
+}
+.concept-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+.concept-card[open] summary {
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding-bottom: 0.5rem;
+}
+
+/* 인덱스 페이지 통계 그리드 */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.audience-list ul { list-style: none; padding-left: 0; }
+.audience-list li { padding: 0.4rem 0; border-bottom: 1px solid var(--sl-color-gray-6, #334155); }
+.audience-list li:last-child { border-bottom: 0; }
+
+/* 비교 박스 - Claude Code vs Codex */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+@media (max-width: 640px) {
+  .compare-grid { grid-template-columns: 1fr; }
+}
+.compare-grid > div {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.compare-grid > div:first-child {
+  border-left: 3px solid #d97706;
+}
+.compare-grid > div:last-child {
+  border-left: 3px solid #10a37f;
+}

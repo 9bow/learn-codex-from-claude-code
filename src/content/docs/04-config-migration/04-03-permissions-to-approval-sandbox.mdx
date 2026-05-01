@@ -1,0 +1,140 @@
+---
+title: permissions에서 approval_policy + sandbox_mode로
+description: Claude Code의 permission rules를 Codex의 approval_policy와 sandbox_mode로 변환하는 방법을 설명합니다.
+sidebar:
+  order: 3
+learning_objectives:
+  - "Claude Code의 allow/deny 규칙을 Codex의 approval_policy로 변환할 수 있다"
+  - "sandbox_mode의 세 가지 수준과 --yolo 플래그의 위험성을 설명할 수 있다"
+prerequisites:
+  - "Claude Code permissions 설정 경험"
+estimated_minutes: 25
+references:
+  - title: "Codex Config Reference"
+    url: "https://developers.openai.com/codex/config-reference"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import Compare from '../../../components/learning/Compare.astro';
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+Claude Code의 `permissions` 블록은 특정 도구나 명령을 허용/거부하는 세밀한 규칙 목록이었습니다. Codex는 이 개념을 **`approval_policy`** (승인 정책)와 **`sandbox_mode`** (샌드박스 수준)로 분리하여 더 명확하게 표현합니다.
+
+## 개념 구조 비교
+
+<Compare>
+  <Fragment slot="left">
+  **Claude Code permissions**
+  - `allow`: 자동 허용 패턴 목록
+  - `deny`: 항상 거부 패턴 목록
+  - `"Bash(npm run *)"` 형식의 glob 패턴
+  - 매칭 없으면 사용자에게 확인 요청
+
+  </Fragment>
+  <Fragment slot="right">
+  **Codex approval_policy + sandbox_mode**
+  - `approval_policy`: 전체 승인 흐름 제어
+  - `sandbox_mode`: 파일시스템/네트워크 접근 수준
+  - `approvals_reviewer`: 승인 주체 (user/auto_review)
+  - 세분화가 필요하면 `granular` 정책 사용
+
+  </Fragment>
+</Compare>
+
+## approval_policy 값
+
+| 값 | 설명 | 대응하는 Claude Code 패턴 |
+|----|------|--------------------------|
+| `untrusted` | 모든 작업에 승인 요청 | `allow: []` (모두 거부) |
+| `on-request` | 에이전트가 필요할 때 요청 | 기본 동작 |
+| `never` | 승인 없이 모두 자동 실행 | `auto` 모드 |
+| `granular` | 도구/명령별 세밀한 규칙 | 상세 allow/deny 패턴 |
+
+:::caution[on-failure는 deprecated]
+이전 문서에서 보이던 `on-failure` 값은 deprecated되었습니다. `on-request`로 대체하세요.
+:::
+
+## sandbox_mode 값
+
+| 값 | 허용 범위 | 권장 상황 |
+|----|-----------|-----------|
+| `read-only` | 파일 읽기만 허용, 쓰기/네트워크 차단 | 코드 분석, 리뷰 작업 |
+| `workspace-write` | 워크스페이스 내 쓰기 허용 | 일반 개발 작업 (기본 권장) |
+| `danger-full-access` | 모든 파일시스템 + 네트워크 허용 | 신뢰된 자동화 파이프라인 |
+
+## Claude Code 패턴 → Codex 변환 표
+
+| Claude Code | Codex config.toml |
+|-------------|-------------------|
+| `"allow": ["Bash(npm run *)"]` | `approval_policy = "on-request"` + 필요 시 granular 규칙 |
+| `"deny": ["Bash(curl *)"]` | `sandbox_mode = "workspace-write"` (네트워크 제한) |
+| `"permissions": {}` 기본값 | `approval_policy = "on-request"` |
+| `auto` 모드 (`bypassPermissions`) | `approval_policy = "never"` |
+| `plan` 모드 | `approval_policy = "untrusted"` |
+
+## 실전 변환 예시
+
+### 기존 Claude Code settings.json
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(git *)",
+      "Read(./src/**)"
+    ],
+    "deny": [
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
+  }
+}
+```
+
+### 변환된 Codex config.toml
+
+```toml
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+approvals_reviewer = "user"
+```
+
+:::tip[세밀한 제어가 필요하다면]
+위 예시처럼 대부분의 경우 `on-request` + `workspace-write` 조합으로 충분합니다. npm/git 명령은 워크스페이스 내 작업이므로 `workspace-write`에서 허용됩니다. curl/wget 등 외부 네트워크 요청은 `workspace-write`에서 제한됩니다.
+:::
+
+## approvals_reviewer 설정
+
+```toml
+# 사용자가 직접 승인
+approvals_reviewer = "user"
+
+# 서브에이전트가 자동 검토 후 승인
+approvals_reviewer = "auto_review"
+```
+
+`auto_review`는 별도 리뷰어 서브에이전트가 요청을 검토하고 정책에 따라 자동 승인/거부합니다. CI/CD 환경이나 자동화 파이프라인에 유용합니다.
+
+## --yolo 플래그 주의
+
+```bash
+# 모든 승인과 샌드박스를 우회 (위험!)
+codex --dangerously-bypass-approvals-and-sandbox
+codex --yolo  # 위 명령의 alias
+```
+
+<ConceptCard title="--yolo는 정말 위험합니다">
+`--yolo` 플래그는 `approval_policy = "never"` + `sandbox_mode = "danger-full-access"`를 동시에 활성화합니다. 에이전트가 시스템 파일을 수정하거나 외부 서버로 데이터를 전송할 수 있습니다. 신뢰된 로컬 스크립트 개발 외에는 절대 사용하지 마세요. 특히 외부에서 받은 프롬프트나 CI/CD 파이프라인에서는 사용을 금지합니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- Claude Code의 `permissions` 블록은 Codex에서 `approval_policy`와 `sandbox_mode`로 분리됩니다
+- `approval_policy`는 `untrusted` / `on-request` / `never` / `granular` 네 가지 값을 가집니다
+- `sandbox_mode`는 `read-only` / `workspace-write` / `danger-full-access` 세 수준입니다
+- 일반 개발에는 `on-request` + `workspace-write` 조합을 권장합니다
+- `--yolo` (`--dangerously-bypass-approvals-and-sandbox`)는 모든 제한을 해제하므로 주의해야 합니다

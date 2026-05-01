@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question": "OpenAI Codex 라인업에 포함되지 않는 것은?",
+    "options": [
+      "Codex CLI (Rust, 오픈소스)",
+      "Codex IDE 확장 (VS Code, JetBrains)",
+      "Codex Desktop App",
+      "Codex Server (Linux 전용 백엔드 데몬)"
+    ],
+    "answer": 3,
+    "explanation": "Codex 라인업은 CLI, IDE 확장, Desktop App, Codex Cloud, ChatGPT 웹/iOS로 구성됩니다. 'Codex Server'라는 Linux 전용 데몬은 존재하지 않습니다."
+  },
+  {
+    "id": "q2",
+    "question": "GPT-5.5 모델의 인증 방식에 대한 설명으로 올바른 것은?",
+    "options": [
+      "API 키와 ChatGPT 계정 인증 모두 지원합니다.",
+      "API 키만 지원하며 ChatGPT 인증은 미지원입니다.",
+      "ChatGPT 계정 인증만 지원하며 API 키는 미지원입니다.",
+      "Bedrock 프로바이더를 통해서만 사용 가능합니다."
+    ],
+    "answer": 2,
+    "explanation": "gpt-5.5는 최신 모델이지만 ChatGPT 인증(ChatGPT 계정)만 지원하며, API 키 인증은 지원하지 않습니다. API 키를 사용하려면 gpt-5.4 등 다른 모델을 선택해야 합니다."
+  },
+  {
+    "id": "q3",
+    "question": "Codex CLI의 글로벌 설정 파일 경로는?",
+    "options": [
+      "~/.codex/settings.json",
+      "~/.codex/config.toml",
+      "~/.openai/config.yaml",
+      "~/.config/codex/config.toml"
+    ],
+    "answer": 1,
+    "explanation": "Codex CLI, IDE 확장, Desktop App은 모두 ~/.codex/config.toml을 공유 설정 파일로 사용합니다. Claude Code의 ~/.claude/settings.json에 대응하는 파일입니다."
+  },
+  {
+    "id": "q4",
+    "question": "Claude Code에서 Codex로 마이그레이션할 때 CLAUDE.md에 대응하는 Codex의 파일명은?",
+    "options": [
+      "CODEX.md",
+      "INSTRUCTIONS.md",
+      "AGENTS.md",
+      "SYSTEM.md"
+    ],
+    "answer": 2,
+    "explanation": "Claude Code의 CLAUDE.md는 Codex에서 AGENTS.md로 대응됩니다. 위치 우선순위는 ~/.codex/AGENTS.override.md > ~/.codex/AGENTS.md > 프로젝트 루트~CWD 트리의 AGENTS.override.md / AGENTS.md 순입니다."
+  },
+  {
+    "id": "q5",
+    "question": "Codex의 agentic 작업에 권장되는 폴백 모델은?",
+    "options": [
+      "gpt-5.5",
+      "gpt-5.4",
+      "gpt-5.3-codex",
+      "gpt-5.4-mini"
+    ],
+    "answer": 1,
+    "explanation": "gpt-5.4는 권장 폴백 모델로, agentic 작업에 적합합니다. gpt-5.5는 최신이지만 ChatGPT 인증만 지원하며, gpt-5.4-mini는 빠르고 저렴하여 subagent용으로 적합합니다."
+  },
+  {
+    "id": "q6",
+    "question": "Codex Desktop App이 Windows로 확장된 시기는?",
+    "options": [
+      "2025년 11월",
+      "2026년 1월",
+      "2026년 3월 4일",
+      "2026년 5월"
+    ],
+    "answer": 2,
+    "explanation": "Codex Desktop App은 macOS에 먼저 출시된 후 2026년 3월 4일에 Windows로 확장되었습니다."
+  },
+  {
+    "id": "q7",
+    "question": "Codex에서 모델 추론 효율(reasoning effort)을 설정하는 config.toml 키는?",
+    "options": [
+      "reasoning_effort",
+      "model_reasoning_effort",
+      "effort_level",
+      "model_effort"
+    ],
+    "answer": 1,
+    "explanation": "config.toml에서 model_reasoning_effort = \"low|medium|high\" 로 설정합니다. Claude Code의 /effort 슬래시 커맨드와 유사한 개념입니다."
+  },
+  {
+    "id": "q8",
+    "question": "Codex Cloud의 특징으로 올바른 것은?",
+    "options": [
+      "로컬 머신에서만 실행되는 오프라인 모드입니다.",
+      "API 키를 통한 pay-per-token 방식을 지원합니다.",
+      "백그라운드 클라우드 작업과 GitHub/Slack 통합을 지원합니다.",
+      "오픈소스로 셀프 호스팅이 가능합니다."
+    ],
+    "answer": 2,
+    "explanation": "Codex Cloud는 백그라운드 클라우드 작업을 제공하며 GitHub, Slack과 통합됩니다. API Key는 CLI/SDK/IDE만 지원하며 Cloud는 미지원입니다."
+  },
+  {
+    "id": "q9",
+    "question": "gpt-5.3-codex-spark 모델에 접근하려면 어떤 플랜이 필요합니까?",
+    "options": [
+      "Free 플랜",
+      "Plus 플랜",
+      "ChatGPT Pro 플랜",
+      "Business 플랜"
+    ],
+    "answer": 2,
+    "explanation": "gpt-5.3-codex-spark는 즉각 반복에 특화된 모델로, ChatGPT Pro 플랜 전용입니다. Pro $100/mo 이상에서 접근할 수 있습니다."
+  },
+  {
+    "id": "q10",
+    "question": "Codex의 세션 히스토리가 저장되는 파일 경로는?",
+    "options": [
+      "~/.codex/sessions/history.db",
+      "~/.codex/history.jsonl",
+      "~/.codex/log/history.log",
+      "~/.codex/cache/sessions.json"
+    ],
+    "answer": 1,
+    "explanation": "Codex의 세션 히스토리는 ~/.codex/history.jsonl에 JSONL 형식으로 저장됩니다. 세션 파일 자체는 ~/.codex/sessions/ 디렉토리에 있습니다."
+  },
+  {
+    "id": "q11",
+    "question": "Codex에서 Ollama나 LM Studio 같은 오픈소스 모델을 사용하려면 어떤 플래그를 씁니까?",
+    "options": [
+      "--local",
+      "--open-source",
+      "--oss",
+      "--custom-model"
+    ],
+    "answer": 2,
+    "explanation": "codex --oss 플래그를 사용하면 Ollama나 LM Studio 같은 로컬 오픈소스 모델을 연결할 수 있습니다."
+  }
+]
