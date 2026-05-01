@@ -10,11 +10,20 @@ prerequisites:
   - "이 가이드 01-01 챕터 읽기"
 estimated_minutes: 20
 references:
+  - title: "Codex Quickstart"
+    url: "https://developers.openai.com/codex/quickstart"
+    accessed: "2026-05-01"
+  - title: "Codex App"
+    url: "https://developers.openai.com/codex/app"
+    accessed: "2026-05-01"
+  - title: "Codex IDE Extension"
+    url: "https://developers.openai.com/codex/ide"
+    accessed: "2026-05-01"
+  - title: "Codex Web"
+    url: "https://developers.openai.com/codex/cloud"
+    accessed: "2026-05-01"
   - title: "Codex CLI GitHub"
     url: "https://github.com/openai/codex"
-    accessed: "2026-05-01"
-  - title: "Introducing the Codex App"
-    url: "https://openai.com/index/introducing-the-codex-app/"
     accessed: "2026-05-01"
 ---
 
@@ -31,10 +40,10 @@ Codex는 다릅니다. **다섯 가지 형태** 로 존재하며, 각각 다른 
 | 형태 | 실행 방법 | 주 용도 | 공유 설정 |
 |------|-----------|---------|-----------|
 | **Codex CLI** | `codex` (터미널) | 로컬 개발, CI/CD, 자동화 스크립트 | `~/.codex/config.toml` |
-| **Codex IDE 확장** | VS Code / JetBrains 패널 | 에디터 내 AI 지원 | `~/.codex/config.toml` 공유 |
+| **Codex IDE 확장** | VS Code 계열 / JetBrains 패널 | 에디터 내 AI 지원 | `~/.codex/config.toml` 공유 |
 | **Codex Desktop App** | macOS / Windows 앱 | 멀티 에이전트 관리, diff 검토 | CLI 세션·설정 그대로 활용 |
-| **Codex Cloud** | 웹 UI / API | 백그라운드 클라우드 작업, GitHub·Slack 통합 | 별도 클라우드 설정 |
-| **ChatGPT 웹·iOS** | chat.openai.com / 앱 | 일상 대화 + 코드 작업 혼합 | ChatGPT 계정 연동 |
+| **Codex Cloud** | chatgpt.com/codex / CLI | 백그라운드 클라우드 작업, GitHub·Slack 통합 | 별도 클라우드 environment |
+| **ChatGPT 웹·iOS** | chatgpt.com / 앱 | 일상 대화 + 코드 작업 혼합 | ChatGPT 계정 연동 |
 
 :::note[참고]
 CLI와 IDE 확장은 **같은 `~/.codex/config.toml`** 을 읽습니다. CLI에서 모델을 바꾸면 IDE 확장에도 즉시 반영됩니다.
@@ -61,7 +70,7 @@ Claude Code의 `claude -p "..."` 에 대응하는 비대화형 모드가 `codex 
 
 ### Codex IDE 확장
 
-VS Code와 JetBrains 모두 지원합니다. CLI와 설정 파일을 공유하므로 별도 설정이 거의 없습니다.
+VS Code, Cursor, Windsurf 같은 VS Code 계열 IDE와 JetBrains IDE 통합을 지원합니다. CLI와 IDE 확장은 같은 Codex 인증 캐시와 설정을 사용합니다.
 
 :::tip[팁]
 Profiles 기능(`[profiles.<name>]`)은 현재 **Experimental** 상태이며 IDE 확장에서는 미지원입니다. CLI에서만 `codex --profile <name>` 으로 사용 가능합니다.
@@ -76,7 +85,7 @@ Profiles 기능(`[profiles.<name>]`)은 현재 **Experimental** 상태이며 IDE
 - **워크트리 기본 지원**: 각 에이전트가 격리된 코드 복사본에서 작업하므로 로컬 git에 영향 없음
 - diff 검토 + 코멘트 + 에디터 즉시 열기
 - Skills 생성·관리 전용 UI
-- Auto Tasks: 스케줄 기반 백그라운드 자동 작업
+- Automations: 스케줄 기반 백그라운드 자동 작업
 
 ### Codex Cloud
 

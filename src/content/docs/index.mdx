@@ -36,7 +36,7 @@ import Badge from '../../components/learning/Badge.astro';
 
 <div className="stat-grid">
   <StatCard variant="codex" value="GPT-5.5" label="플래그십 모델" hint="ChatGPT 인증 전용 · API 키 미지원" />
-  <StatCard variant="codex" value="2×" label="사용 한도 프로모션" hint="Plus / Pro / Business / Enterprise / Edu (2026-05 한정)" />
+  <StatCard variant="codex" value="공식 Pricing" label="사용 한도 확인" hint="플랜·프로모션은 수시로 변경" />
   <StatCard variant="claude" value="11" label="섹션" hint="설치부터 팀 마이그레이션까지" />
   <StatCard variant="neutral" value="48+" label="챕터" hint="총 16~20시간 분량 · 121문항 퀴즈 포함" />
 </div>
@@ -66,7 +66,7 @@ import Badge from '../../components/learning/Badge.astro';
     코드 작성·디버깅·리뷰·CI 흐름을 Codex 방식으로 재구성. 공식 프롬프트 패턴과 `/personality` 활용.
   </Card>
   <Card title="08. Codex Desktop App" icon="open-book">
-    멀티 에이전트 명령 센터, 워크트리 격리, Auto Tasks, CLI/IDE/App 동기화.
+    멀티 에이전트 명령 센터, 워크트리 격리, Automations, CLI/IDE/App 동기화.
   </Card>
   <Card title="09. 고급 기능" icon="sun">
     Profiles, resume/fork, Codex Cloud, multi-agent orchestration, Codex를 MCP 서버로 노출.
@@ -96,10 +96,8 @@ import Badge from '../../components/learning/Badge.astro';
   { date: "2021-08", title: "구 Codex 코드 모델 (별개 제품)", description: "GitHub Copilot의 동력원이 된 OpenAI Codex 코드 완성 API. 2023년 deprecated. 현재 Codex와는 이름만 같은 완전히 다른 제품." },
   { date: "2025-04-16", title: "Codex CLI 오픈소스 출시", description: "터미널 에이전트로 재탄생. github.com/openai/codex 오픈소스 공개. 단일 에이전트 워크플로 중심." },
   { date: "2025-05", title: "Codex 클라우드 에이전트 출시", description: "ChatGPT 내 백그라운드 SWE 에이전트로 추가. GitHub·Slack 통합 시작." },
-  { date: "2025-12 (mid-December)", title: "GPT-5.2-Codex 출시", description: "출시 이후 Codex 전체 사용량 2배 증가. 100만+ 개발자 사용." },
-  { date: "2026-03-04", title: "Codex Desktop App (Windows)", description: "macOS 출시에 이어 Windows 지원 확장. 멀티 에이전트 명령 센터로 자리 잡음." },
-  { date: "2026-04-23", title: "GPT-5.5 정식 출시 · Codex CLI v0.124.0", description: "GPT-5.5 (Codex 내 400K 컨텍스트, Terminal-Bench 2.0 82.7% SOTA) 정식 출시. Codex CLI v0.124.0에서 Hooks stable 전환, AGENTS.md 60K+ 오픈소스 프로젝트 표준 확립." },
-  { date: "2026-05", title: "본 가이드 작성 시점", description: "GPT-5.5 / GPT-5.4 / GPT-5.3-Codex(-Spark) / GPT-5.2 라인업, Agent Skills 표준 정착." },
+  { date: "2026-03", title: "Codex Desktop App 확장", description: "macOS와 Windows용 Codex app이 worktree, Automations, Git 기능을 제공하는 로컬 앱으로 자리 잡음." },
+  { date: "2026-05", title: "본 가이드 작성 시점", description: "공식 Models 문서 기준 GPT-5.5 / GPT-5.4 / GPT-5.3-Codex 계열과 Agent Skills 문서가 정리됨." },
 ]} />
 
 :::tip[가이드 사용법]

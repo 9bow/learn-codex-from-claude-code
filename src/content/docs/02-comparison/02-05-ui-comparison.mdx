@@ -10,8 +10,11 @@ prerequisites:
   - "02-02 명령어·파일·디렉토리 대응 표"
 estimated_minutes: 25
 references:
-  - title: "Introducing the Codex App"
-    url: "https://openai.com/index/introducing-the-codex-app/"
+  - title: "Codex App"
+    url: "https://developers.openai.com/codex/app"
+    accessed: "2026-05-01"
+  - title: "Codex Automations"
+    url: "https://developers.openai.com/codex/app/automations"
     accessed: "2026-05-01"
   - title: "Codex CLI Features"
     url: "https://developers.openai.com/codex/cli/features"
@@ -83,12 +86,13 @@ Codex TUI에는 Claude Code에 없는 `/personality` 커맨드가 있습니다. 
 
 | 모드 | 설명 |
 |------|------|
-| `concise` | 간결하고 핵심만 전달 |
-| `conversational` | 상세하고 대화적 |
+| `none` | 별도 personality 없음 |
+| `friendly` | 더 친근한 응답 스타일 |
+| `pragmatic` | 실용적이고 간결한 응답 스타일 |
 
 ```
-/personality concise
-→ 에이전트가 짧고 간결하게 답변
+/personality pragmatic
+→ 에이전트가 실용적이고 간결한 스타일로 답변
 ```
 
 ## Codex Desktop App
@@ -103,7 +107,7 @@ Desktop App은 TUI와 근본적으로 다른 경험을 제공합니다. 2026년 
 | Git 작업 | 현재 브랜치에서 | **워크트리 격리** (로컬 git 영향 없음) |
 | diff 검토 | 텍스트 출력 | **GUI diff 뷰어** + 코멘트 |
 | Skills 관리 | CLI 명령 | **전용 Skills UI** |
-| 자동 작업 | 수동 실행 | **Auto Tasks** (스케줄 기반) |
+| 자동 작업 | 수동 실행 | **Automations** (스케줄 기반) |
 | 세션 전환 | `codex resume` | 프로젝트별 스레드 GUI |
 
 <ConceptCard title="워크트리 격리란?">
@@ -117,9 +121,9 @@ Desktop App은 각 에이전트에게 현재 레포지토리의 **격리된 git 
 Claude Code에서 oh-my-claudecode 같은 오케스트레이터로 구현하던 워크트리 패턴을 Desktop App이 기본 지원합니다.
 </ConceptCard>
 
-### Auto Tasks
+### Automations
 
-Desktop App의 Auto Tasks는 스케줄 기반 백그라운드 자동 작업입니다.
+Desktop App의 Automations는 스케줄 기반 백그라운드 자동 작업입니다.
 
 | 자동 작업 예시 |
 |----------------|
@@ -152,7 +156,7 @@ Desktop App에서 이어서 확인·수정 가능
 | 빠른 단일 작업 | Codex TUI |
 | 여러 기능을 동시에 개발 | Codex Desktop App |
 | 에이전트 결과를 신중히 검토하고 싶다 | Codex Desktop App |
-| 정기 반복 작업 자동화 | Codex Desktop App (Auto Tasks) |
+| 정기 반복 작업 자동화 | Codex Desktop App (Automations) |
 | CI/CD 파이프라인 | `codex exec` (비대화형) |
 
 ## 핵심 정리
@@ -160,7 +164,7 @@ Desktop App에서 이어서 확인·수정 가능
 - **Codex TUI** 는 Claude Code TUI와 유사하지만 `/agent` 스레드 전환과 `/personality` 가 추가됩니다
 - Tab 키 동작이 다르므로 Claude Code에서 Tab 자동완성에 익숙하다면 주의가 필요합니다
 - **Desktop App** 은 워크트리 격리, 동시 다중 에이전트 시각화, GUI diff 검토를 제공합니다
-- **Auto Tasks** 는 Desktop App 전용 스케줄 기반 백그라운드 작업 기능입니다
+- **Automations** 는 Desktop App 전용 스케줄 기반 백그라운드 작업 기능입니다
 - Desktop App은 CLI 설정(`~/.codex/config.toml`)과 세션을 **그대로 공유** 합니다
 - 단순 터미널 작업은 TUI, 복잡한 멀티 에이전트 작업은 Desktop App이 적합합니다
 

@@ -140,15 +140,14 @@ Claude Code의 `claude -p "..."` 는 Codex의 `codex exec "..."` (또는 `codex 
   sandbox_mode = "read-only"
   ```
 - [ ] **Skills 설치** — Claude Code skills을 Agent Skills 표준으로 전환
-  ```bash
-  # 공식 skill 설치
-  codex skill-installer linear
-  codex skill-installer vercel-deploy
+  ```text
+  Codex 프롬프트에서:
+  $skill-installer linear skill을 설치해 줘
   ```
 - [ ] **Desktop App 설치 및 연동** (선택)
   - macOS / Windows 앱 설치
   - CLI 세션이 그대로 연동되는지 확인
-  - Auto Tasks 설정
+  - Automations 설정
 - [ ] **Codex Rules 검토** — `developers.openai.com/codex/rules`
   프로젝트·팀 단위 규칙 정의로 AGENTS.md와 보완
 - [ ] **CI/CD 파이프라인 업데이트**

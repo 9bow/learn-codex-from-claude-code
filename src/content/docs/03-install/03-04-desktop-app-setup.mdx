@@ -10,11 +10,14 @@ prerequisites:
   - "Codex 인증 방식 이해 (ChatGPT 인증 권장)"
 estimated_minutes: 25
 references:
-  - title: "Introducing the Codex App"
-    url: "https://openai.com/index/introducing-the-codex-app/"
+  - title: "Codex App"
+    url: "https://developers.openai.com/codex/app"
     accessed: "2026-05-01"
-  - title: "Codex CLI Features"
-    url: "https://developers.openai.com/codex/cli/features"
+  - title: "Codex Automations"
+    url: "https://developers.openai.com/codex/app/automations"
+    accessed: "2026-05-01"
+  - title: "Codex Authentication"
+    url: "https://developers.openai.com/codex/auth"
     accessed: "2026-05-01"
 ---
 
@@ -25,18 +28,9 @@ Codex Desktop App은 2026년 3월 macOS로 출시된 후 Windows로 확장되었
 
 ## 설치
 
-### macOS
+### macOS / Windows
 
-[openai.com/codex](https://openai.com/codex) 또는 Mac App Store에서 Codex App을 다운로드합니다.
-
-```bash
-# Homebrew Cask로도 설치 가능
-brew install --cask codex
-```
-
-### Windows
-
-Microsoft Store 또는 공식 사이트에서 설치 파일(`.exe`)을 다운로드하여 실행합니다.
+공식 [Codex app 문서](https://developers.openai.com/codex/app)에서 macOS 또는 Windows용 앱을 다운로드합니다. Intel Mac을 사용한다면 Intel 빌드를 선택하세요.
 
 :::note[시스템 요구사항]
 macOS 13 Ventura 이상, Windows 10/11 (64-bit) 이상을 권장합니다.
@@ -50,7 +44,7 @@ macOS 13 Ventura 이상, Windows 10/11 (64-bit) 이상을 권장합니다.
 2. 브라우저에서 OpenAI OAuth 완료
 3. 앱으로 자동 복귀
 
-이미 CLI에서 ChatGPT 인증을 완료했다면 `~/.codex/`의 토큰을 재사용하므로 재로그인 없이 바로 시작됩니다.
+CLI와 IDE 확장은 로그인 캐시를 공유합니다. 앱도 ChatGPT 계정 또는 API 키로 로그인할 수 있으며, API 키로 로그인하면 cloud threads 같은 일부 기능은 사용할 수 없을 수 있습니다.
 
 ## CLI 세션과의 연동
 
@@ -79,7 +73,7 @@ Desktop App은 각 에이전트가 **격리된 코드 복사본(워크트리)** 
 
 에이전트가 파일을 수정하면 앱 내 diff 뷰어에서 변경 내용을 검토할 수 있습니다. 코멘트를 남기고 에디터에서 바로 열기도 지원합니다.
 
-### Auto Tasks
+### Automations
 
 스케줄 기반 백그라운드 자동 작업을 설정할 수 있습니다. 예: 이슈 자동 분류, CI 실패 요약, 일일 릴리스 브리프 생성.
 
@@ -95,15 +89,15 @@ Skills 탭 → Browse → 카탈로그에서 선택 → Install
 설치된 스킬은 `$HOME/.agents/skills/`에 저장되며 CLI에서도 즉시 사용 가능합니다.
 
 <ConceptCard title="/personality 명령">
-Desktop App에서 `/personality` 명령으로 에이전트 응답 스타일을 전환할 수 있습니다. `concise` 모드는 간결한 답변을, `conversational` 모드는 친근하고 풍부한 답변을 제공합니다. 작업 유형에 따라 전환하면 효율이 높아집니다.
+Desktop App과 CLI에서 `/personality` 명령 또는 `personality` 설정으로 에이전트 응답 스타일을 전환할 수 있습니다. 공식 config 값은 `none`, `friendly`, `pragmatic` 입니다.
 </ConceptCard>
 
 ## 핵심 정리
 
-- Codex Desktop App은 macOS와 Windows를 모두 지원하며 Homebrew Cask로도 설치 가능합니다
+- Codex Desktop App은 macOS와 Windows를 모두 지원합니다
 - 첫 실행 시 ChatGPT 인증을 권장합니다 — gpt-5.5와 Cloud 기능 사용이 가능합니다
 - CLI와 동일한 `~/.codex/` 디렉터리를 공유하므로 세션과 설정이 자동으로 연동됩니다
 - 워크트리 기본 지원으로 여러 에이전트가 충돌 없이 동시 작업할 수 있습니다
-- 스킬 카드 UI, diff 검토, Auto Tasks 등 CLI에 없는 시각적 기능을 제공합니다
+- 스킬 카드 UI, diff 검토, Automations 등 CLI에 없는 시각적 기능을 제공합니다
 
 <Quiz client:load section="03" />

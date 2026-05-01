@@ -45,7 +45,7 @@ codex --version
 # codex 0.x.x
 
 # 인증 상태 확인
-codex auth status
+codex login status
 # Logged in as: your@email.com
 ```
 
@@ -133,7 +133,7 @@ web_search = "cached"
 persistence = "save-all"
 ```
 
-`settings.json`의 `permissions.allow` 목록에 해당하는 내용은 `approval_policy`와 `sandbox_mode`로 표현합니다. 세밀한 제어가 필요하면 `approval_policy = "granular"` 로 설정하고 Rules를 활용합니다.
+`settings.json`의 `permissions.allow` 목록에 해당하는 내용은 `approval_policy`와 `sandbox_mode`로 표현합니다. 세밀한 제어가 필요하면 `approval_policy = { granular = { ... } }` 형식과 Rules를 함께 활용합니다.
 
 ## 4단계: 첫 실행
 
