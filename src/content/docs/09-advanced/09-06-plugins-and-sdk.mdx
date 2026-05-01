@@ -1,0 +1,189 @@
+---
+title: 플러그인, SDK, GitHub Action
+description: Codex 플러그인 시스템, TypeScript/Python SDK, GitHub Action CI/CD 연동, Code Mode, JavaScript REPL Runtime을 소개합니다.
+sidebar:
+  order: 6
+learning_objectives:
+  - "codex plugin marketplace 명령으로 플러그인을 설치·관리할 수 있다"
+  - "Codex SDK(TypeScript/Python)로 프로그래밍 방식 워크플로를 구성할 수 있다"
+  - "Codex GitHub Action으로 CI/CD 파이프라인에 codex exec을 연동할 수 있다"
+prerequisites:
+  - "09-05 Codex를 MCP 서버로 노출하기"
+  - "Codex 기본 설치 완료"
+estimated_minutes: 30
+references:
+  - title: "Blake Crosley Codex CLI v0.124 Reference"
+    url: "https://blakecrosley.com/guides/codex"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Reference"
+    url: "https://developers.openai.com/codex/cli/reference"
+    accessed: "2026-05-01"
+  - title: "Codex CLI Features"
+    url: "https://developers.openai.com/codex/cli/features"
+    accessed: "2026-05-01"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+:::note[보너스 챕터]
+이 챕터는 09-05에서 다룬 핵심 고급 기능 외 보너스 콘텐츠입니다. Codex v0.124.0 기준으로 작성되었습니다.
+:::
+
+## 플러그인 시스템
+
+Codex는 `codex plugin marketplace` 명령으로 플러그인을 검색·설치·관리할 수 있습니다. 플러그인은 여러 Skills를 묶어서 배포하는 단위로, Git URL 또는 로컬 경로를 지원합니다.
+
+```bash
+# 마켓플레이스에서 플러그인 검색
+codex plugin marketplace
+
+# Git URL로 플러그인 설치
+codex plugin marketplace add https://github.com/example/my-plugin
+
+# 로컬 경로로 플러그인 설치
+codex plugin marketplace add ./path/to/plugin
+
+# 설치된 플러그인 업그레이드
+codex plugin marketplace upgrade my-plugin
+
+# 플러그인 제거
+codex plugin marketplace remove my-plugin
+```
+
+<ConceptCard title="플러그인 vs Skills의 차이">
+- **Skills**: 단일 작업 단위. `SKILL.md` 하나로 정의. `$HOME/.agents/skills/` 에 위치
+- **플러그인**: 여러 Skills를 묶은 배포 단위. `codex plugin marketplace` 로 관리
+
+플러그인을 설치하면 내부의 Skills가 자동으로 등록되어 `$skill-name` 으로 호출할 수 있습니다.
+</ConceptCard>
+
+## Codex SDK (TypeScript / Python)
+
+Codex SDK를 사용하면 코드에서 프로그래밍 방식으로 Codex를 호출할 수 있습니다. agentic 워크플로를 스크립트나 서버 애플리케이션에 통합할 때 유용합니다.
+
+### TypeScript SDK
+
+```typescript
+import { CodexClient } from '@openai/codex-sdk';
+
+const client = new CodexClient({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const result = await client.exec({
+  task: 'src/api.ts의 에러 핸들링을 개선해줘',
+  model: 'gpt-5.4',
+  approvalPolicy: 'never',
+});
+
+console.log(result.output);
+```
+
+### Python SDK
+
+```python
+from openai_codex import CodexClient
+
+client = CodexClient(api_key=os.environ["OPENAI_API_KEY"])
+
+result = client.exec(
+    task="src/api.ts의 에러 핸들링을 개선해줘",
+    model="gpt-5.4",
+    approval_policy="never",
+)
+
+print(result.output)
+```
+
+:::note[참고]
+SDK는 CLI/IDE 확장과 동일한 `~/.codex/config.toml` 설정을 공유합니다. API 키가 필요하며, `gpt-5.5` 는 ChatGPT 인증 전용이므로 SDK에서는 `gpt-5.4` 를 권장합니다.
+:::
+
+## Codex GitHub Action
+
+Codex GitHub Action을 사용하면 CI/CD 파이프라인에서 `codex exec` 를 자동으로 실행할 수 있습니다. PR 생성, 코드 리뷰, 이슈 자동 처리 등에 활용합니다.
+
+```yaml
+# .github/workflows/codex-review.yml
+name: Codex Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Codex 코드 리뷰
+        uses: openai/codex-action@v1
+        with:
+          task: "변경된 파일의 코드 품질을 검토하고 개선 제안을 PR 코멘트로 남겨줘"
+          model: gpt-5.4
+          approval-policy: never
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+| 옵션 | 설명 |
+|------|------|
+| `task` | 실행할 작업 프롬프트 |
+| `model` | 사용할 모델 (기본: `gpt-5.4`) |
+| `approval-policy` | 승인 정책 (`never` 권장 for CI) |
+| `sandbox-mode` | 샌드박스 모드 (기본: `workspace-write`) |
+
+:::tip[팁]
+CI 환경에서는 `approval-policy: never` 와 `sandbox-mode: read-only` 조합이 안전합니다. 파일 변경 없이 분석·리뷰만 수행할 때 특히 유용합니다.
+:::
+
+## Code Mode (Experimental, v0.124+)
+
+Code Mode는 Codex가 코드를 직접 실행·수정하는 실험적 모드입니다. 일반 대화 모드와 달리 코드 변경을 즉시 적용하고 실행 결과를 확인하면서 반복 작업을 수행합니다.
+
+```toml
+# ~/.codex/config.toml
+[features]
+code_mode = true
+```
+
+```bash
+# Code Mode로 실행
+codex --code-mode "테스트를 모두 통과시켜줘"
+```
+
+:::caution[실험적 기능]
+Code Mode는 v0.124.0 기준 Experimental 상태입니다. 동작 방식이 변경될 수 있으므로 프로덕션 코드베이스에서는 주의해서 사용하세요.
+:::
+
+## JavaScript REPL Runtime (Experimental, v0.121+)
+
+v0.121부터 도입된 내장 JavaScript REPL Runtime을 사용하면 Codex 세션 내에서 JavaScript 코드를 즉시 실행할 수 있습니다. 외부 Node.js 설치 없이 빠른 검증이 가능합니다.
+
+```javascript
+// Codex 프롬프트에서 JS REPL 활용 예시
+// "다음 함수를 REPL에서 테스트해줘"
+const sum = (a, b) => a + b;
+console.log(sum(1, 2)); // 3
+```
+
+```toml
+# ~/.codex/config.toml
+[features]
+js_repl = true
+```
+
+:::note[참고]
+JS REPL Runtime은 샌드박스 내에서 실행됩니다. 파일시스템 접근은 현재 `sandbox_mode` 설정을 따릅니다.
+:::
+
+## 핵심 정리
+
+- `codex plugin marketplace add <git-url|local-path>` 로 플러그인을 설치하고, 내부 Skills가 자동 등록됩니다
+- **Codex SDK** (TypeScript / Python) 로 agentic 워크플로를 애플리케이션에 통합할 수 있습니다
+- **Codex GitHub Action** 으로 PR 리뷰·이슈 처리 등을 CI/CD에서 자동화할 수 있습니다
+- **Code Mode** (Experimental, v0.124+) 는 코드 실행·수정을 즉시 반영하는 실험적 모드입니다
+- **JavaScript REPL Runtime** (Experimental, v0.121+) 은 세션 내 JS 코드 즉시 실행을 지원합니다
+- SDK와 GitHub Action 모두 `gpt-5.5` 는 미지원이므로 `gpt-5.4` 를 사용하세요

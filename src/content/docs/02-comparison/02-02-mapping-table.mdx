@@ -141,7 +141,7 @@ Codex skills 경로는 `.codex/skills/` 가 **아닙니다**. `$HOME/.agents/ski
 | `PermissionRequest` | — |
 
 :::note[참고]
-Codex hooks는 현재 `PreToolUse` 이벤트만 공식 지원됩니다. `features.codex_hooks = true` 게이트 활성화가 필요합니다.
+Codex hooks는 v0.124.0 (2026-04-23) 이후 stable입니다. `PreToolUse`, `PostToolUse`, `Stop` 이벤트를 지원하며, v0.124.0+ 에서는 `features.codex_hooks = true` 게이트가 더 이상 필요 없습니다.
 :::
 
 ## 핵심 정리
@@ -151,4 +151,4 @@ Codex hooks는 현재 `PreToolUse` 이벤트만 공식 지원됩니다. `feature
 - 지침 파일은 `CLAUDE.md` 에서 `AGENTS.md` 로 바뀝니다
 - Skills 경로는 `.claude/skills/` 가 아닌 **`.agents/skills/`** 입니다
 - Claude Code의 **Plan Mode** 와 여러 slash 커맨드는 Codex에 대응 기능이 없습니다
-- Hooks는 현재 Codex에서 `PreToolUse` 만 지원하며 게이트 활성화가 필요합니다
+- Hooks는 v0.124.0+ 에서 stable이며 `PreToolUse`, `PostToolUse`, `Stop` 을 지원합니다 (게이트 불필요)

@@ -50,8 +50,18 @@
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-auto-rows: 1fr;
   gap: 0.75rem;
   margin: 1.25rem 0;
+  align-items: stretch;
+}
+.stat-grid > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.stat-grid .omc-stat {
+  flex: 1 1 auto;
 }
 
 .audience-list ul { list-style: none; padding-left: 0; }

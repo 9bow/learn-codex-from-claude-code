@@ -174,10 +174,23 @@ Claude Code와 Codex 모두 세션 히스토리를 저장하지만 위치가 다
 | 로그 | — | `~/.codex/log/codex-tui.log` |
 | 히스토리 | — | `~/.codex/history.jsonl` |
 
+## AGENTS.md — cross-tool 표준
+
+`AGENTS.md` 는 OpenAI Codex 전용 파일이 아닙니다. 2026-05 기준 **60,000개 이상의 오픈소스 프로젝트** 가 채택한 cross-tool 표준입니다.
+
+:::tip[한 번 작성, 모든 도구에서 동작]
+`AGENTS.md` 를 한 번 작성해두면 다음 도구에서 모두 인식됩니다:
+
+Codex, Cursor, GitHub Copilot, Amp, Jules, Gemini CLI, Windsurf, Cline, Aider, Zed
+
+기존 `CLAUDE.md` 를 `AGENTS.md` 로 이전하면 Claude Code 외 다른 AI 도구로도 자연스럽게 전환할 수 있습니다.
+:::
+
 ## 핵심 정리
 
 - Codex 설정은 **TOML** 형식 (`~/.codex/config.toml`)입니다. JSON이 아닙니다
 - `CLAUDE.md` 에 대응하는 파일은 **`AGENTS.md`** 입니다. 위치 우선순위가 다릅니다
+- `AGENTS.md` 는 60K+ 프로젝트가 채택한 **cross-tool 표준** 입니다 (Cursor, Copilot, Amp 등 지원)
 - Codex는 기본적으로 **sandbox** 가 활성화됩니다 (`workspace-write` + `on-request`)
 - skill 호출은 프롬프트에 **`$skill-name`** 을 입력하거나, description 매칭으로 자동 호출됩니다
 - `--yolo` 플래그는 모든 sandbox와 승인을 우회하므로 신중하게 사용해야 합니다
