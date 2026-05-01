@@ -4,6 +4,15 @@
     BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI',
     'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   --sl-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  /* 콘텐츠 영역 확장 (기본 45rem → 60rem) */
+  --sl-content-width: 60rem;
+}
+
+/* 와이드 뷰포트에서 본문 영역을 더 확장 */
+@media (min-width: 100rem) {
+  :root {
+    --sl-content-width: 72rem;
+  }
 }
 
 /* Pretendard 웹폰트 로드 */
