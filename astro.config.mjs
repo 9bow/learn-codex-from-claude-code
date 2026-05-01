@@ -10,6 +10,16 @@ export default defineConfig({
   base: '/learn-codex-from-claude-code',
   integrations: [
     starlight({
+      head: [
+        {
+          tag: 'script',
+          attrs: { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-15Q73B061J' },
+        },
+        {
+          tag: 'script',
+          content: `window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'G-15Q73B061J');`,
+        },
+      ],
       title: 'Claude Code → Codex 마이그레이션 가이드',
       description: 'Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드 (GPT-5.5 시대)',
       defaultLocale: 'root',
