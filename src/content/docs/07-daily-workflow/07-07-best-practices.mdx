@@ -1,0 +1,207 @@
+---
+title: Codex 공식 베스트 프랙티스 정리
+description: OpenAI 공식 Best practices 문서를 기준으로 프롬프트, AGENTS.md, 설정, 검증, MCP, Skills, 자동화, 스레드 관리의 운영 원칙을 한곳에 정리합니다.
+sidebar:
+  order: 7
+learning_objectives:
+  - "Codex 공식 Best practices의 핵심 운영 원칙 7가지를 설명할 수 있다"
+  - "AGENTS.md 회고 루프와 분할 전략을 적용할 수 있다"
+  - "한 스레드 = 한 작업 원칙과 /fork 사용 기준을 구분할 수 있다"
+  - "MCP·Skill·Automation을 도입해야 할 시점을 단계별로 판단할 수 있다"
+prerequisites:
+  - "07-06 Codex 프롬프트 가이드 읽기"
+  - "04-02 AGENTS.md 마이그레이션 읽기"
+estimated_minutes: 25
+references:
+  - title: "Codex Best Practices"
+    url: "https://developers.openai.com/codex/learn/best-practices"
+    accessed: "2026-05-04"
+  - title: "Codex AGENTS.md Guide"
+    url: "https://developers.openai.com/codex/guides/agents-md"
+    accessed: "2026-05-04"
+  - title: "Codex Skills"
+    url: "https://developers.openai.com/codex/skills"
+    accessed: "2026-05-04"
+  - title: "Codex MCP"
+    url: "https://developers.openai.com/codex/mcp"
+    accessed: "2026-05-04"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+이 챕터는 OpenAI 공식 Best practices 문서를 그대로 옮기는 대신, **Claude Code에서 넘어온 사용자가 자주 빠뜨리는 운영 습관**을 중심으로 재정리합니다. 다른 챕터에서 이미 다룬 주제는 핵심만 짚고 링크합니다.
+
+## 1. 프롬프트는 일회용, 규칙은 영구 저장소로
+
+좋은 프롬프트 4요소(Goal·Context·Constraints·Done when)는 [07-06 Codex 프롬프트 가이드](/learn-codex-from-claude-code/07-daily-workflow/07-06-prompting-codex/)에서 다뤘습니다. 여기서 추가로 강조할 원칙은 **"같은 말을 두 번 이상 쓰면 옮길 곳을 정한다"** 입니다.
+
+| 반복되는 내용의 성격 | 옮길 위치 |
+|---------------------|-----------|
+| 팀·프로젝트의 영구 규칙 | `AGENTS.md` (저장소) |
+| 개인의 작업 스타일 | `~/.codex/AGENTS.md` |
+| 절차가 고정된 워크플로 | Skill (`SKILL.md`) |
+| 실행 환경·도구 연결 | MCP 서버 |
+| 스케줄로 반복되는 작업 | Codex App Automation |
+
+공식 문서가 지적하는 가장 흔한 실수는 "영구 규칙을 매번 프롬프트에 다시 붙이는 것"입니다. 프롬프트는 **이번 작업에만 유효한 정보**(재현 절차, 범위 제한, 일회성 제약)에만 집중시키세요.
+
+## 2. AGENTS.md는 회고로 키운다
+
+`AGENTS.md`는 처음부터 완벽할 필요가 없습니다. 공식 가이드는 다음 루프를 권장합니다.
+
+```
+1. 작은 AGENTS.md로 시작 (실행/테스트/린트 명령 + 디렉토리 지도)
+2. 작업하다 같은 실수가 두 번 반복되면 멈춘다
+3. Codex에게 회고를 요청한다
+4. 회고에서 나온 규칙을 AGENTS.md에 추가한다
+5. 다음 작업에서 규칙이 실제로 작동하는지 확인한다
+```
+
+회고 요청 프롬프트 예시는 다음과 같습니다.
+
+```text
+방금 작업에서 같은 실수가 두 번 반복됐다.
+- 첫 번째: 테스트를 추가하지 않고 구현만 끝냈다
+- 두 번째: 새 컴포넌트를 src/components 대신 src/ui에 만들었다
+
+이 두 가지가 다시 발생하지 않도록 AGENTS.md에 추가할 규칙 후보를
+3~5줄로 제안해 줘. 기존 규칙과 충돌하는 부분이 있으면 함께 표시해.
+```
+
+<ConceptCard title="AGENTS.md가 비대해질 때">
+
+공식 문서는 `AGENTS.md`가 길어지면 **메인 파일은 짧게 유지하고, 작업별 보조 마크다운으로 쪼개라**고 권장합니다.
+
+```
+repo/
+├── AGENTS.md              # 짧은 핵심 규칙 + 보조 파일 링크
+├── docs/agents/
+│   ├── code_review.md     # /review가 참조하는 리뷰 체크리스트
+│   ├── architecture.md    # 모듈 경계와 의존성 규칙
+│   └── release_notes.md   # 릴리스 노트 작성 절차
+```
+
+`AGENTS.md`에서 다음과 같이 참조합니다.
+
+```markdown
+## 코드 리뷰
+리뷰 작업은 [docs/agents/code_review.md](docs/agents/code_review.md)의
+체크리스트를 따른다.
+```
+
+이렇게 하면 한 번 로드되는 컨텍스트는 작게 유지하면서, Codex가 필요할 때만 보조 파일을 읽어옵니다.
+
+</ConceptCard>
+
+## 3. 설정은 계층으로, 플래그는 일회용으로
+
+| 영역 | 권장 위치 |
+|------|-----------|
+| 개인 기본값 (모델, reasoning, 테마) | `~/.codex/config.toml` |
+| 저장소 공통 설정 (sandbox, MCP, profile) | `.codex/config.toml` |
+| 일회성 변경 | CLI 플래그 (`--profile`, `--ask-for-approval`) |
+
+공식 가이드의 단호한 권고: **CLI 플래그를 alias로 박지 말 것**. 특히 `--yolo`/`--dangerously-bypass-approvals-and-sandbox`를 alias로 등록하면 안전 장치 전체가 무력화됩니다(자세한 내용은 [10-04 안티패턴](/learn-codex-from-claude-code/10-scenarios/10-04-antipatterns/) 참조).
+
+## 4. 검증 루프는 "써서" 시킨다
+
+Codex가 스스로 테스트·린트·리뷰를 도는 루프는 **무엇이 "좋음"인지 알려줄 때만** 작동합니다. 이 정의는 두 곳 중 하나에 있어야 합니다.
+
+- **이번 작업 한정**이면 프롬프트의 "Done when"
+- **모든 작업 공통**이면 `AGENTS.md`
+
+`/review` 슬래시 커맨드는 다음 모드를 지원합니다.
+
+| 모드 | 용도 |
+|------|------|
+| base 브랜치 대비 리뷰 | PR 머지 전 점검 |
+| uncommitted changes 리뷰 | 커밋 직전 자가 점검 |
+| 특정 커밋 리뷰 | 회귀 분석 |
+| 커스텀 지침 리뷰 | `code_review.md` 같은 체크리스트 적용 |
+
+팀이 동일한 리뷰 기준을 쓰려면 `docs/agents/code_review.md`를 만들고 `AGENTS.md`에서 참조하세요. Codex가 `/review` 시 이 파일을 함께 읽습니다.
+
+## 5. MCP·Skill·Automation은 "수동으로 안정된 다음에"
+
+공식 문서가 거듭 강조하는 도입 순서입니다.
+
+```
+[1] 손으로 한 번 한다
+       │
+       ▼
+[2] 두세 번 반복되면 → Skill로 절차를 고정한다
+       │
+       ▼
+[3] 외부 시스템 데이터가 필요하면 → MCP 서버를 추가한다
+       │
+       ▼
+[4] 절차가 안정되었고 주기성이 명확하면 → Automation으로 옮긴다
+```
+
+각 단계에서 흔히 어기는 규칙:
+
+- **MCP를 먼저 다 연결한다(X)** → 실제로 자주 하는 수동 루프 1~2개를 없앨 도구만 먼저 붙입니다.
+- **불완전한 워크플로를 Automation으로 만든다(X)** → 수동으로 안정적이지 않은 절차는 자동화하면 더 나쁜 결과를 더 많이 만듭니다.
+- **Skill을 처음부터 완벽하게 설계한다(X)** → 대표 사례 하나로 시작하고, `$skill-creator` 스킬로 스캐폴딩한 뒤 실사용으로 다듬습니다.
+
+스킬 저장 경로 요약(자세한 내용은 [06-skills](/learn-codex-from-claude-code/06-skills/)):
+
+| 스코프 | 경로 |
+|--------|------|
+| 개인 | `~/.agents/skills/<name>/` |
+| 저장소 공통 | `<repo>/.agents/skills/<name>/` |
+| 시스템 | `/etc/codex/skills/<name>/` |
+
+## 6. 한 스레드 = 한 작업
+
+Claude Code에서 "프로젝트당 채팅 하나"에 익숙해진 사용자가 가장 자주 어기는 원칙입니다. Codex는 **작업 단위로 스레드를 분리**하는 편이 결과 품질이 좋습니다. 이유는 단순합니다. 하나의 스레드가 너무 길어지면 불필요한 과거 컨텍스트가 추론을 방해하고, 자동 압축이 일어나면서 중요한 결정이 손실되기 때문입니다.
+
+| 상황 | 올바른 행동 |
+|------|-------------|
+| 같은 문제를 계속 파고드는 중 | **현재 스레드 유지**(추론 흐름 보존) |
+| 같은 문제의 다른 가설을 동시에 시험 | `/fork`로 분기(원본 보존) |
+| 새로운 작업 시작 | **새 스레드** 시작 |
+| 스레드가 길어졌고 핵심만 남기고 싶다 | `/compact` |
+| 어제 하던 작업 이어서 | `/resume` 또는 Desktop App 스레드 |
+| 병렬로 보조 작업 위임 | 서브에이전트(`/agent`) |
+
+`/fork`는 "정말 작업이 갈라질 때만" 쓰라는 것이 공식 권고입니다. 같은 작업의 후속 단계라면 포크보다 동일 스레드가 거의 항상 낫습니다.
+
+데스크톱 앱의 스레드 모델과 CLI 세션의 관계는 [08-04 스레드 기반 컨텍스트 관리](/learn-codex-from-claude-code/08-desktop-app/08-04-thread-context/)에서 다룹니다.
+
+## 7. Codex를 "지켜보는" 대신 "병렬로 일하기"
+
+마지막 원칙은 사용 습관에 관한 것입니다. 공식 문서는 다음을 흔한 실수로 지목합니다.
+
+- 한 단계 한 단계 직접 감시하면서 사용한다
+- 본인의 작업과 직렬로만 사용한다
+- 라이브 스레드 여러 개를 같은 파일 위에서 돌린다(워크트리 미사용)
+
+권장 패턴은 다음과 같습니다.
+
+- **워크트리 분리**: 같은 저장소에서 동시에 두 가지 작업을 시킬 때 Desktop App의 [Worktree](/learn-codex-from-claude-code/08-desktop-app/08-02-worktree-multi-agent/) 또는 `git worktree`로 디렉토리를 분리합니다.
+- **서브에이전트 위임**: 메인 스레드는 핵심 문제에 집중하고, 탐색/테스트/트리아주 같은 경계가 명확한 작업은 [서브에이전트](/learn-codex-from-claude-code/05-feature-mapping/05-04-subagents/)로 넘깁니다.
+- **자동화로 회고하기**: Automation은 실행만이 아니라 "지난 세션을 돌아보고 개선점 정리"용으로도 유용합니다. 주간 회고 자동화로 `AGENTS.md` 보강 후보를 모아 두는 식입니다.
+
+## 흔한 실수 체크리스트
+
+공식 문서가 정리한 8가지 실수를 한국어로 압축했습니다. 자가 점검용으로 사용하세요.
+
+- [ ] 영구 규칙을 프롬프트에 반복해서 붙이고 있지 않은가? → `AGENTS.md`/Skill로 이동
+- [ ] 빌드·테스트 명령을 Codex가 모르고 추측하고 있지 않은가? → `AGENTS.md`에 명시
+- [ ] 다단계 작업을 계획 없이 바로 구현시키고 있지 않은가? → `/plan` 또는 Plan Mode
+- [ ] 워크플로 이해 전에 `--yolo`/풀 권한을 부여하지 않았는가?
+- [ ] 같은 파일에 라이브 스레드 여러 개를 워크트리 없이 돌리고 있지 않은가?
+- [ ] 수동으로 불안정한 절차를 Automation으로 먼저 만들지 않았는가?
+- [ ] 한 단계마다 직접 감시하느라 본인 작업이 멈추고 있지 않은가?
+- [ ] 한 프로젝트당 한 스레드만 쓰고 있지 않은가? → 작업당 한 스레드
+
+## 핵심 정리
+
+- 프롬프트는 일회성, 영구 규칙은 `AGENTS.md`·Skill·MCP·Automation 중 적절한 위치로 이동시키세요
+- `AGENTS.md`는 회고 루프로 키우고, 비대해지면 보조 마크다운으로 분할합니다
+- 설정은 글로벌→저장소→플래그 순으로 계층화하고, 위험한 플래그는 alias로 박지 마세요
+- 검증 루프는 "Done when" 또는 `AGENTS.md`로 기준을 명시할 때만 자율적으로 돕니다
+- MCP·Skill·Automation은 수동으로 안정된 절차에만 도입하세요
+- 스레드는 프로젝트가 아니라 **작업 단위**로 나누고, `/fork`는 진짜 분기일 때만 사용합니다
+- Codex를 직렬로 감시하기보다 워크트리·서브에이전트로 병렬화하는 편이 더 빠릅니다
