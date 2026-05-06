@@ -12,10 +12,13 @@ estimated_minutes: 20
 references:
   - title: "Codex Config Reference"
     url: "https://developers.openai.com/codex/config-reference"
-    accessed: "2026-05-01"
+    accessed: "2026-05-06"
   - title: "Codex Config Advanced"
     url: "https://developers.openai.com/codex/config-advanced"
     accessed: "2026-05-01"
+  - title: "Codex Feature Maturity"
+    url: "https://developers.openai.com/codex/feature-maturity"
+    accessed: "2026-05-06"
 ---
 
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
@@ -131,6 +134,24 @@ max_depth = 1
 job_max_runtime_seconds = 1800  # 30분
 ```
 
+## Under-development 기능 경고 숨기기
+
+Codex에서 under-development feature flag를 켜면 시작 시 경고가 표시될 수 있습니다. 예를 들어 v0.128.0의 `/goal` 기능은 `[features] goals = true`로 켜지만, 공식 feature registry 기준 `Stage::UnderDevelopment`이며 기본값은 `false`입니다.
+
+이 경고를 숨기려면 최상위 config에 다음을 추가합니다.
+
+```toml
+# ~/.codex/config.toml
+suppress_unstable_features_warning = true
+
+[features]
+goals = true
+```
+
+:::caution[주의]
+`suppress_unstable_features_warning`은 기능을 안정화하거나 활성화하지 않습니다. under-development 기능이 켜져 있을 때 표시되는 경고만 숨깁니다. 또한 `[features]` 안에 넣는 키가 아니므로, 위 예시처럼 `[features]` 섹션보다 먼저 작성하세요.
+:::
+
 ## 전체 config.toml 예시
 
 ```toml
@@ -143,6 +164,7 @@ sandbox_mode = "workspace-write"
 web_search = "cached"
 telemetry = false
 file_opener = "vscode"
+suppress_unstable_features_warning = true
 
 [env]
 OPENAI_API_KEY = "sk-proj-..."
@@ -173,6 +195,7 @@ job_max_runtime_seconds = 1800
 - `model`과 `model_reasoning_effort`로 기본 모델과 추론 강도를 설정합니다
 - `telemetry = false`로 사용 데이터 전송을 비활성화할 수 있습니다
 - `history.persistence = "save-all"`과 `history.max_bytes`로 히스토리 저장 방식을 제어합니다
+- `suppress_unstable_features_warning = true`는 under-development feature 경고만 숨깁니다
 - 설정 우선순위는 글로벌 config.toml → 프로젝트 config.toml → CLI 플래그 → 환경 변수 순입니다
 
 <Quiz client:load section="04" />
