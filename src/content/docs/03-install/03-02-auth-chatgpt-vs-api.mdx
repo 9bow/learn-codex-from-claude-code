@@ -38,7 +38,7 @@ codex
 인증 토큰은 `~/.codex/` 디렉터리에 저장되며 이후 자동으로 사용됩니다.
 
 :::tip[ChatGPT 인증이 필요한 경우]
-`gpt-5.5` 모델과 **Codex Cloud** 기능(백그라운드 클라우드 작업, GitHub/Slack 통합)은 반드시 ChatGPT 인증이 필요합니다. API 키로는 접근할 수 없습니다.
+**Codex Cloud** 기능(백그라운드 클라우드 작업, GitHub/Slack 통합)은 ChatGPT 계정 인증이 필요합니다. 모델 사용 가능 범위는 계정 플랜, API 권한, 클라이언트 버전에 따라 달라질 수 있으므로 최신 모델 가이드를 함께 확인하세요.
 :::
 
 ## API 키 인증
@@ -64,7 +64,7 @@ API 키는 CLI, SDK, IDE 확장에서 사용하기 적합합니다. **Codex Clou
 
 | 모델 | ChatGPT 인증 | API 키 | 비고 |
 |------|:------------:|:------:|------|
-| `gpt-5.5` | ✅ | ❌ | ChatGPT 인증 전용 |
+| `gpt-5.5` | ✅ | 권한별 상이 | 최신 모델 가이드와 계정 권한 확인 |
 | `gpt-5.4` | ✅ | ✅ | 권장 폴백, agentic 작업 |
 | `gpt-5.4-mini` | ✅ | ✅ | 빠르고 저렴, 서브에이전트용 |
 | `gpt-5.3-codex` | ✅ | ✅ | 코딩 특화 |
@@ -80,7 +80,7 @@ API 키는 CLI, SDK, IDE 확장에서 사용하기 적합합니다. **Codex Clou
   </Fragment>
   <Fragment slot="right">
   - 두 가지 인증: ChatGPT 계정 또는 API 키
-  - `gpt-5.5`, Codex Cloud는 ChatGPT 인증 필수
+  - Codex Cloud와 GitHub/Slack 통합은 ChatGPT 인증 필수
   - 플랜에 따라 모델 접근 범위 상이
 
   </Fragment>
@@ -96,7 +96,7 @@ API 키는 CLI, SDK, IDE 확장에서 사용하기 적합합니다. **Codex Clou
 | Codex Cloud | ✅ | ❌ |
 | GitHub 통합 | ✅ | ❌ |
 | Slack 통합 | ✅ | ❌ |
-| `gpt-5.5` 사용 | ✅ | ❌ |
+| 최신 모델 사용 | 플랜별 상이 | API 권한별 상이 |
 
 ## 의사결정 트리
 
@@ -118,7 +118,7 @@ API 키는 CLI, SDK, IDE 확장에서 사용하기 적합합니다. **Codex Clou
 ## 핵심 정리
 
 - Codex는 **ChatGPT 계정 인증** 과 **API 키 인증** 두 가지 방식을 지원합니다
-- `gpt-5.5` 모델과 Codex Cloud 기능은 ChatGPT 인증만 지원합니다
+- Codex Cloud와 GitHub/Slack 통합은 ChatGPT 인증이 필요합니다
 - API 키 인증은 CLI, SDK, IDE 확장 중심의 로컬·자동화 작업에 적합하며 Cloud 기능에는 접근할 수 없습니다
 - 팀 협업, GitHub/Slack 통합이 필요하다면 반드시 ChatGPT 인증을 사용해야 합니다
 - CI/CD 환경처럼 토큰 기반 청구가 필요한 경우는 API 키가 적합합니다

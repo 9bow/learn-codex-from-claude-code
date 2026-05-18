@@ -57,7 +57,7 @@
       "gpt-5.4-mini"
     ],
     "answer": 1,
-    "explanation": "gpt-5.4는 권장 폴백 모델로, agentic 작업에 적합합니다. gpt-5.5는 최신이지만 ChatGPT 인증만 지원하며, gpt-5.4-mini는 빠르고 저렴하여 subagent용으로 적합합니다."
+    "explanation": "gpt-5.4는 권장 폴백 모델로, agentic 작업에 적합합니다. 최신 모델의 사용 가능 범위는 ChatGPT 플랜, API 프로젝트 권한, 클라이언트 버전에 따라 달라질 수 있으며, gpt-5.4-mini는 빠르고 저렴하여 subagent용으로 적합합니다."
   },
   {
     "id": "q6",

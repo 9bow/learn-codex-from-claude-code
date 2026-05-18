@@ -23,7 +23,9 @@
   },
   "pnpm": {
     "overrides": {
-      "uuid": "^14.0.0"
+      "uuid": "^14.0.0",
+      "picomatch": ">=4.0.4",
+      "smol-toml": ">=1.6.1"
     }
   }
 }

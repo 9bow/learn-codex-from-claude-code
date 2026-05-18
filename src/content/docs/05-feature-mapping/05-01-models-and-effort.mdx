@@ -41,7 +41,7 @@ Codex는 GPT-5 계열 모델을 사용합니다. Claude Code보다 더 세분화
 
 | 모델 | 플래그 | 특징 | 비고 |
 |------|--------|------|------|
-| `gpt-5.5` | `-m gpt-5.5` | 복잡한 코딩, computer use, 지식 작업, 리서치에 권장 | ChatGPT 인증만, API 키 미지원 |
+| `gpt-5.5` | `-m gpt-5.5` | 복잡한 코딩, computer use, 지식 작업, 리서치에 권장 | 최신 모델 가이드와 계정 권한 확인 |
 | `gpt-5.4` | `-m gpt-5.4` | 강한 reasoning, tool use, agentic workflow | API 키 지원 |
 | `gpt-5.4-mini` | `-m gpt-5.4-mini` | 빠르고 효율적인 경량 코딩 모델 | API 키 지원, routine 작업·subagent에 적합 |
 | `gpt-5.3-codex` | `-m gpt-5.3-codex` | 복잡한 소프트웨어 엔지니어링용 코딩 모델 | Codex Cloud에서도 사용 |
@@ -49,7 +49,7 @@ Codex는 GPT-5 계열 모델을 사용합니다. Claude Code보다 더 세분화
 | `gpt-5.2` | `-m gpt-5.2` | 이전 범용 모델 | 대체 모델 |
 
 :::note[참고]
-`gpt-5.5` 는 2026-04-23 정식 출시되어 2026-05 기준 권장 기본 모델입니다. 단, ChatGPT 인증(Pro/Plus 플랜) 사용자만 이용 가능하며, API 키만 보유한 경우에는 `gpt-5.4` 가 권장 폴백 모델입니다.
+`gpt-5.5` 는 2026-05 기준 권장 기본 모델입니다. 단, 모델별 사용 가능 범위는 ChatGPT 플랜, API 프로젝트 권한, 클라이언트 버전에 따라 달라질 수 있으므로 실행 전 공식 모델 가이드를 확인하세요.
 :::
 
 ## model_reasoning_effort 설정
