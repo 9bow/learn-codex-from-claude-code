@@ -11,8 +11,8 @@ Claude Code에 익숙한 사용자가 OpenAI Codex CLI, IDE 확장, Desktop App,
 ## 구성
 
 - 11개 섹션
-- 56개 MDX 챕터
-- 11개 섹션별 퀴즈
+- 55개 학습 챕터 + 홈 문서 1개
+- 11개 섹션별 퀴즈 JSON 데이터
 - Astro 6 + Starlight + React 기반
 - Mermaid 다이어그램과 전환 흐름 컴포넌트 포함
 
@@ -38,6 +38,20 @@ pnpm dev
 pnpm build
 pnpm preview
 ```
+
+## 검증
+
+변경 후에는 다음 명령으로 Starlight 콘텐츠, MDX, React 컴포넌트, Mermaid 다이어그램, 정적 자산 경로를 확인합니다.
+
+```bash
+pnpm build
+```
+
+## 콘텐츠 품질 기준
+
+- Claude Code와 Codex의 기능 비교는 1:1 매핑이 어려운 항목을 별도로 설명하고, 억지 등가 비교를 피합니다.
+- 설치, 인증, approval/sandbox, Desktop App처럼 변경 가능성이 큰 내용은 확인 가능한 명령과 점검 절차를 함께 둡니다.
+- 마이그레이션 안내는 개인 워크플로와 팀 운영 워크플로를 구분해 작성합니다.
 
 ## 주요 경로
 
