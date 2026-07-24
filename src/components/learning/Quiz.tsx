@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 type Question = {
   id: string;
@@ -11,6 +11,56 @@ type Question = {
 type Props = {
   section: string;
 };
+
+function renderInline(text: string, keyOffset: number): ReactNode[] {
+  const parts: ReactNode[] = [];
+  const inlineCodeRegex = /`([^`]+)`/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  const pushPlain = (plain: string) => {
+    parts.push(
+      <span key={`text-${keyOffset}-${parts.length}`}>
+        {plain.split('\n').flatMap((line, index, lines) =>
+          index < lines.length - 1
+            ? [line, <br key={`br-${keyOffset}-${parts.length}-${index}`} />]
+            : [line],
+        )}
+      </span>,
+    );
+  };
+
+  while ((match = inlineCodeRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) pushPlain(text.slice(lastIndex, match.index));
+    parts.push(<code key={`inline-${keyOffset}-${parts.length}`}>{match[1]}</code>);
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) pushPlain(text.slice(lastIndex));
+  return parts;
+}
+
+function renderText(text: string): ReactNode[] {
+  const parts: ReactNode[] = [];
+  const codeBlockRegex = /```(?:\w*)\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(...renderInline(text.slice(lastIndex, match.index), parts.length));
+    }
+    parts.push(
+      <pre key={`block-${parts.length}`} style={{ overflowX: 'auto' }}>
+        <code>{match[1]}</code>
+      </pre>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(...renderInline(text.slice(lastIndex), parts.length));
+  }
+  return parts;
+}
 
 export default function Quiz({ section }: Props) {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -55,7 +105,7 @@ export default function Quiz({ section }: Props) {
             }}
           >
             <p style={{ fontWeight: 600 }}>
-              {qi + 1}. {q.question}
+              {qi + 1}. {renderText(q.question)}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {q.options.map((opt, i) => (
@@ -68,7 +118,7 @@ export default function Quiz({ section }: Props) {
                     onChange={() => setSelected({ ...selected, [q.id]: i })}
                     style={{ marginRight: '0.5rem' }}
                   />
-                  {opt}
+                  {renderText(opt)}
                 </label>
               ))}
             </div>
@@ -80,7 +130,12 @@ export default function Quiz({ section }: Props) {
                   fontSize: '0.9rem',
                 }}
               >
-                {correct ? '✅ 정답입니다.' : `❌ 정답: ${q.options[q.answer]}`} — {q.explanation}
+                {correct ? (
+                  '✅ 정답입니다.'
+                ) : (
+                  <>❌ 정답: {renderText(q.options[q.answer])}</>
+                )}{' '}
+                — {renderText(q.explanation)}
               </p>
             )}
           </div>

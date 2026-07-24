@@ -28,6 +28,9 @@ references:
   - title: "OpenAI Latest Model Guide"
     url: "https://developers.openai.com/api/docs/guides/latest-model.md"
     accessed: "2026-05-16"
+  - title: "Moving to the new ChatGPT desktop app"
+    url: "https://help.openai.com/en/articles/20001276"
+    accessed: "2026-07-24"
 ---
 
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
@@ -78,9 +81,9 @@ VS Code, Cursor, Windsurf 같은 VS Code 계열 IDE와 JetBrains IDE 통합을 �
 Profiles 기능(`[profiles.<name>]`)은 현재 **Experimental** 상태이며 IDE 확장에서는 미지원입니다. CLI에서만 `codex --profile <name>` 으로 사용 가능합니다.
 :::
 
-### Codex Desktop App
+### 데스크톱 앱의 Codex
 
-macOS와 Windows에서 사용할 수 있는 GUI 앱입니다. 단순한 에디터 확장과 달리 **멀티 에이전트 명령 센터** 역할을 합니다. ChatGPT 계정 또는 OpenAI API 키로 로그인할 수 있지만, API 키 로그인에서는 cloud threads 같은 일부 기능이 제한될 수 있습니다.
+macOS와 Windows에서 사용할 수 있는 GUI 환경입니다. 2026년 7월부터 기존 Codex 앱은 업데이트 후 **Chat, Work, Codex를 한 앱에 담은 새 ChatGPT 데스크톱 앱** 으로 전환되고 있습니다. 기존 Codex 대화와 프로젝트는 유지되며, Codex 사용자는 업데이트 후에도 Codex 화면에서 시작할 수 있습니다. 단순한 에디터 확장과 달리 Codex 화면은 **멀티 에이전트 명령 센터** 역할을 합니다.
 
 주요 특징:
 - 여러 에이전트를 동시에 실행하고 각각의 진행 상황을 관리
@@ -130,7 +133,8 @@ Claude Code에서 전환하는 경우 대부분은 **Codex CLI** 부터 시작�
 
 ## 핵심 정리
 
-- Codex 전환 학습에서는 App, IDE 확장, CLI, Cloud **네 가지 진입점** 을 먼저 구분합니다
+- Codex 전환 학습에서는 데스크톱 앱의 Codex, IDE 확장, CLI, Cloud **네 가지 진입점** 을 먼저 구분합니다
+- 기존 Codex 앱은 2026년 7월부터 통합 ChatGPT 데스크톱 앱으로 전환되고 있으므로 설치 화면의 제품명이 다를 수 있습니다
 - **CLI와 IDE 확장** 은 `~/.codex/config.toml` 을 공유합니다
 - **Desktop App** 은 멀티 에이전트 관리와 워크트리 격리를 기본 지원합니다
 - **Codex Cloud** 는 GitHub·Slack 통합 백그라운드 작업에 적합합니다

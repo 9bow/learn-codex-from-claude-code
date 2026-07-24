@@ -22,6 +22,9 @@ references:
   - title: "Codex Pricing"
     url: "https://developers.openai.com/codex/pricing"
     accessed: "2026-05-01"
+  - title: "ChatGPT Release Notes — desktop app experience updates"
+    url: "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+    accessed: "2026-07-24"
 ---
 
 import Compare from '../../../components/learning/Compare.astro';
@@ -73,9 +76,14 @@ import ConceptCard from '../../../components/learning/ConceptCard.astro';
 
 ## 출시 정보
 
-- **macOS**: 2026년 3월 초 출시
+- **macOS**: 2026년 2월 2일 출시
 - **Windows**: 2026년 3월 4일 확장
-- **Linux**: 2026-05 기준 미출시
+- **통합 앱 전환**: 2026년 7월, 기존 Codex 앱 업데이트를 통해 Chat·Work·Codex가 한 데스크톱 앱에 통합
+- **Linux**: 2026-07 기준 데스크톱 앱 미출시
+
+:::caution[제품명 변화]
+최신 앱에서는 창 제목과 설치 파일이 `ChatGPT`로 표시될 수 있습니다. 이는 Codex가 사라진 것이 아니라 Chat·Work와 함께 통합된 것입니다. 전역 전환기에서 **Codex** 를 선택하세요.
+:::
 
 :::note[참고]
 Desktop App은 CLI와 같은 `~/.codex/config.toml` 을 공유합니다. CLI에서 설정한 모델, sandbox 정책, MCP 서버가 Desktop App에도 그대로 적용됩니다.
@@ -111,7 +119,7 @@ CLI만 사용하는 경우 API 키로도 충분하지만, Desktop App을 활용�
 ## 핵심 정리
 
 - Codex Desktop App은 **멀티 에이전트 명령 센터** 로, 단일 에이전트 도구인 IDE 확장·터미널과 역할이 다릅니다
-- **macOS와 Windows** 를 모두 지원합니다 (2026-05 기준 Linux 미지원)
+- 통합 ChatGPT 데스크톱 앱에서 **macOS와 Windows** 를 지원합니다 (2026-07 기준 Linux 미지원)
 - CLI와 **`~/.codex/config.toml` 을 공유** 하므로 별도 설정 없이 바로 사용할 수 있습니다
 - API 키로도 app에 로그인할 수 있지만, cloud 기반 기능은 ChatGPT 인증이 필요합니다
 - 플랜별 사용 한도와 프로모션은 공식 Pricing 문서에서 확인해야 합니다

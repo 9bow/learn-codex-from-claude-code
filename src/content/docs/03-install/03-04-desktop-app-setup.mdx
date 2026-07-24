@@ -19,18 +19,21 @@ references:
   - title: "Codex Authentication"
     url: "https://developers.openai.com/codex/auth"
     accessed: "2026-05-01"
+  - title: "Moving to the new ChatGPT desktop app"
+    url: "https://help.openai.com/en/articles/20001276"
+    accessed: "2026-07-24"
 ---
 
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
 import Quiz from '../../../components/learning/Quiz';
 
-Codex Desktop App은 2026년 3월 macOS로 출시된 후 Windows로 확장되었습니다. 단순한 채팅 인터페이스가 아니라 **멀티 에이전트 명령 센터** 로 설계되었으며, 여러 에이전트를 동시에 관리하고 diff를 검토하는 워크플로우에 최적화되어 있습니다.
+Codex 앱은 2026년 2월 2일 macOS에서 출시되었고, 3월 4일 Windows로 확장되었습니다. 2026년 7월부터 기존 Codex 앱을 업데이트하면 Chat, Work, Codex를 통합한 **새 ChatGPT 데스크톱 앱** 으로 전환됩니다. 기존 Codex 대화와 프로젝트는 유지되며, Codex 화면의 멀티 에이전트·diff 검토 워크플로도 계속 사용할 수 있습니다.
 
 ## 설치
 
 ### macOS / Windows
 
-공식 [Codex app 문서](https://developers.openai.com/codex/app)에서 macOS 또는 Windows용 앱을 다운로드합니다. Intel Mac을 사용한다면 Intel 빌드를 선택하세요.
+공식 [Codex app 문서](https://developers.openai.com/codex/app)에서 macOS 또는 Windows용 앱을 다운로드합니다. 설치 후 화면에 `ChatGPT`라는 제품명이 표시되어도 정상이며, 전역 전환기에서 Codex를 선택하면 됩니다.
 
 :::note[시스템 요구사항]
 macOS 13 Ventura 이상, Windows 10/11 (64-bit) 이상을 권장합니다.
@@ -94,7 +97,8 @@ Desktop App과 CLI에서 `/personality` 명령 또는 `personality` 설정으로
 
 ## 핵심 정리
 
-- Codex Desktop App은 macOS와 Windows를 모두 지원합니다
+- 통합 ChatGPT 데스크톱 앱의 Codex 화면은 macOS와 Windows를 모두 지원합니다
+- 기존 Codex 앱 사용자는 업데이트 후 대화와 프로젝트를 유지한 채 새 앱으로 전환됩니다
 - 첫 실행 시 ChatGPT 인증을 권장합니다 — gpt-5.5와 Cloud 기능 사용이 가능합니다
 - CLI와 동일한 `~/.codex/` 디렉터리를 공유하므로 세션과 설정이 자동으로 연동됩니다
 - 워크트리 기본 지원으로 여러 에이전트가 충돌 없이 동시 작업할 수 있습니다
