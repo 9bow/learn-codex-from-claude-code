@@ -21,7 +21,19 @@ references:
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
 import Compare from '../../../components/learning/Compare.astro';
 
-Claude Code의 VS Code 확장(`anthropic.claude-code`)에 익숙하다면 Codex IDE 확장도 비슷한 흐름으로 설치할 수 있습니다. 가장 중요한 차이는 **CLI와 IDE 확장이 동일한 `~/.codex/config.toml`을 공유** 한다는 점입니다.
+Claude Code의 VS Code 확장에 익숙하다면 Codex도 편집기 안에서 대화를 시작하고 열린 파일·선택 영역을 프롬프트에 넣는 흐름으로 사용할 수 있습니다. 다만 IDE마다 통합 방식과 표시되는 설정은 다를 수 있으므로, 설치와 모델 선택은 해당 IDE의 Codex 화면과 공식 문서를 기준으로 확인합니다.
+
+```text
+┌─────────────────────┐
+│ VS Code·Cursor·Windsurf │ ──▶ Codex 확장으로 사이드바 열기
+└─────────────────────┘
+┌─────────────────────┐
+│ JetBrains IDE       │ ──▶ AI Chat에서 Codex 선택
+└─────────────────────┘
+┌─────────────────────┐
+│ Xcode               │ ──▶ Coding Assistant에서 Codex 선택
+└─────────────────────┘
+```
 
 ## VS Code 계열 확장 설치
 
@@ -36,36 +48,13 @@ code --install-extension openai.chatgpt
 
 설치 후 사이드바에 Codex 아이콘이 나타납니다. 처음 실행 시 인증 흐름(ChatGPT 또는 API 키)을 안내합니다.
 
-## JetBrains 플러그인 설치
+## JetBrains 통합
 
-IntelliJ IDEA, PyCharm, WebStorm 등 JetBrains IDE에서:
+IntelliJ IDEA, PyCharm, WebStorm 등 JetBrains IDE에서는 **AI Chat을 열어 Codex를 선택** 합니다. Marketplace에서 이름이 비슷한 플러그인을 임의로 설치하기보다, IDE의 AI Chat과 [공식 IDE 안내](https://developers.openai.com/codex/ide)를 기준으로 현재 사용할 수 있는 통합을 확인하세요.
 
-1. `Settings` → `Plugins` → `Marketplace` 탭
-2. "Codex" 또는 "OpenAI Codex" 검색
-3. `Install` 클릭 후 IDE 재시작
+## CLI 설정과 IDE 설정의 구분
 
-:::note[참고]
-JetBrains IDE 통합은 ChatGPT, API 키, JetBrains AI 구독 로그인을 지원합니다. 설치 링크와 지원 범위는 [공식 IDE 문서](https://developers.openai.com/codex/ide#jetbrains-ide-integration)를 기준으로 확인하세요.
-:::
-
-## config.toml 공유 구조
-
-<Compare>
-  <Fragment slot="left">
-  - `~/.claude/settings.json`: Claude Code 전용
-  - VS Code 확장 설정은 VS Code settings.json에 별도 저장
-  - CLI와 IDE 설정이 분리됨
-
-  </Fragment>
-  <Fragment slot="right">
-  - `~/.codex/config.toml`: CLI + IDE + Desktop App 공유
-  - 단일 설정 파일로 모든 환경 관리
-  - 프로젝트별 `.codex/config.toml`도 공유
-
-  </Fragment>
-</Compare>
-
-설정 파일 위치는 환경 변수 `CODEX_HOME`으로 변경할 수 있습니다.
+`~/.codex/config.toml`은 Codex CLI의 기본 설정 파일입니다. 프로젝트 범위 설정이나 개별 IDE 통합이 같은 설정을 언제·어떻게 적용하는지는 통합과 버전에 따라 달라질 수 있으므로, 설정 변경 후에는 CLI와 IDE에서 각각 의도한 동작인지 확인합니다. `CODEX_HOME`을 설정하면 사용자 설정의 기준 디렉터리를 바꿀 수 있습니다.
 
 ```toml
 # ~/.codex/config.toml 예시
@@ -73,15 +62,11 @@ model = "gpt-5.4"
 model_reasoning_effort = "medium"
 ```
 
-## 모델 선택기 (Model Selector)
+## 모델 선택
 
-IDE 확장 내에서 `/model` 명령 또는 UI의 모델 선택기 드롭다운으로 현재 세션의 모델을 변경할 수 있습니다.
+지원되는 IDE 화면에서는 모델 선택기를 통해 작업에 맞는 모델을 고를 수 있습니다. 실제로 보이는 모델과 선택 가능 여부는 구독, 워크스페이스 정책, 사용하는 Codex 표면에 따라 달라집니다. CLI에서 특정 실행에 설정을 겹쳐 적용할 때는 `codex --profile <name>` 또는 `--model`을 사용합니다.
 
-:::caution[Profiles 미지원]
-config.toml의 `[profiles.<name>]` 기능은 현재 **IDE 확장에서 지원되지 않습니다** (Experimental, CLI 전용). 프로필별로 다른 모델을 사용하려면 CLI에서 `codex --profile <name>`을 사용하세요.
-:::
-
-## file_opener 설정
+## CLI의 file_opener 설정
 
 Codex가 파일을 열 때 사용할 에디터를 config.toml에 지정할 수 있습니다.
 
@@ -95,15 +80,14 @@ file_opener = "cursor"
 
 지원하는 값: `"vscode"`, `"vscode-insiders"`, `"windsurf"`, `"cursor"`, `"none"` 입니다. 기본값은 `"vscode"` 입니다.
 
-<ConceptCard title="Claude Code와 설정 동기화">
-Claude Code는 VS Code 확장과 CLI가 별도의 설정을 가집니다. Codex는 단일 config.toml로 통합되어 있어, CLI에서 모델을 변경하면 다음번 IDE 확장 세션에도 자동으로 반영됩니다. 단, 세션 중 `/model` 명령으로 변경한 값은 해당 세션에만 적용됩니다.
+<ConceptCard title="설정 변경 후 확인할 것">
+설정 파일을 수정한 뒤에는 CLI에서 의도한 값이 적용되는지 먼저 확인하고, IDE에서도 새 대화가 원하는 모델·권한·작업 폴더로 시작하는지 확인합니다. CLI 설정이 모든 IDE 동작을 동일하게 바꾼다고 가정하지 않는 편이 안전합니다.
 </ConceptCard>
 
 ## 핵심 정리
 
-- VS Code 계열 확장의 공식 ID는 `openai.chatgpt` 입니다
-- JetBrains IDE 통합은 공식 IDE 문서의 JetBrains 설치 링크를 따릅니다
-- CLI, IDE 확장, Desktop App이 `~/.codex/config.toml`을 공유합니다
-- 모델 선택기(`/model`)로 세션 중 모델을 변경할 수 있습니다
-- `file_opener` 설정으로 파일을 열 에디터를 지정할 수 있습니다
-- `[profiles]` 기능은 IDE 확장에서 지원되지 않으므로 CLI에서만 사용 가능합니다
+- VS Code 계열에서는 Codex 확장을 설치하거나 활성화한 뒤 사이드바를 엽니다
+- JetBrains IDE에서는 AI Chat에서 Codex를 선택합니다
+- Xcode와 JetBrains를 포함한 각 통합의 설치·지원 범위는 공식 IDE 문서를 확인합니다
+- 모델 선택 가능 범위는 사용하는 표면과 워크스페이스 정책에 따라 달라질 수 있습니다
+- `file_opener`는 CLI가 파일을 열 때 사용할 에디터를 지정하는 설정입니다
