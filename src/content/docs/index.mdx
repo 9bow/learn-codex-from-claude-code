@@ -1,9 +1,9 @@
 ---
 title: Claude Code → Codex 마이그레이션 가이드
-description: Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드 (GPT-5.5 시대)
+description: Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드
 template: splash
 hero:
-  tagline: Claude Code에 익숙한 당신을 위한, GPT-5.5 시대 Codex로의 자연스러운 이주 가이드
+  tagline: Claude Code에 익숙한 당신을 위한, 현재 Codex로의 자연스러운 이주 가이드
   image:
     file: ../../assets/hero-landing.png
     alt: Claude Code에서 Codex로의 마이그레이션을 표현한 일러스트
@@ -35,10 +35,10 @@ import Badge from '../../components/learning/Badge.astro';
 ## 왜 지금 이 가이드인가
 
 <div className="stat-grid">
-  <StatCard variant="codex" value="GPT-5.5" label="플래그십 모델" hint="최신 모델 가이드·계정 권한 확인" />
+  <StatCard variant="codex" value="모델 선택기" label="현재 모델 확인" hint="계정·표면별 가용 모델 확인" />
   <StatCard variant="codex" value="공식 Pricing" label="사용 한도 확인" hint="플랜·프로모션은 수시로 변경" />
   <StatCard variant="claude" value="11" label="섹션" hint="설치부터 팀 마이그레이션까지" />
-  <StatCard variant="neutral" value="55" label="챕터" hint="총 16~20시간 분량 · 124문항 퀴즈 포함" />
+  <StatCard variant="neutral" value="58" label="챕터" hint="설치부터 팀 전환·자동화까지" />
 </div>
 
 ## 커리큘럼 개요
@@ -51,8 +51,8 @@ import Badge from '../../components/learning/Badge.astro';
   <LinkCard title="05. 핵심 기능 매핑" href="/learn-codex-from-claude-code/05-feature-mapping/05-01-models-and-effort/" description="모델, 명령, MCP, subagent, hooks와 web search 매핑." />
   <LinkCard title="06. Skills 마이그레이션" href="/learn-codex-from-claude-code/06-skills/06-01-agent-skills-spec/" description="Claude Code Skills를 Codex Agent Skills로 변환." />
   <LinkCard title="07. 일상 워크플로우" href="/learn-codex-from-claude-code/07-daily-workflow/07-01-coding-flow/" description="코딩·디버깅·리뷰·CI 흐름과 프롬프팅 습관." />
-  <LinkCard title="08. Codex Desktop App" href="/learn-codex-from-claude-code/08-desktop-app/08-01-command-center/" description="멀티 에이전트, worktree, Automations와 인터페이스 연동." />
-  <LinkCard title="09. 고급 기능" href="/learn-codex-from-claude-code/09-advanced/09-01-profiles/" description="Profiles, resume/fork, Cloud, orchestration과 MCP server." />
+  <LinkCard title="08. ChatGPT Desktop App" href="/learn-codex-from-claude-code/08-desktop-app/08-01-command-center/" description="프로젝트, worktree, 예약 작업과 인터페이스 연동." />
+  <LinkCard title="09. 고급 기능" href="/learn-codex-from-claude-code/09-advanced/09-01-profiles/" description="Profiles, resume/fork, Cloud, orchestration, WebMCP와 CI 확장." />
   <LinkCard title="10. 실전 시나리오" href="/learn-codex-from-claude-code/10-scenarios/10-01-personal-project/" description="개인·팀 전환, Claude와 Codex 병용, 안티패턴." />
   <LinkCard title="11. 트러블슈팅 & 참고" href="/learn-codex-from-claude-code/11-troubleshooting/11-01-common-issues/" description="흔한 문제, 공식 리소스와 최종 점검표." />
 </CardGrid>
@@ -62,7 +62,7 @@ import Badge from '../../components/learning/Badge.astro';
 <div class="audience-list">
 
 - <Badge variant="claude" text="Claude Code 사용자" /> 슬래시 커맨드, `CLAUDE.md`, hooks, subagents, skills, MCP를 어느 정도 이해하고 있는 분
-- <Badge variant="codex" text="Codex 전환자" /> GPT-5.5 / Codex App 출시 이후 OpenAI 생태계로 옮겨가려는 분
+- <Badge variant="codex" text="Codex 전환자" /> 현재 Codex CLI·IDE·ChatGPT 데스크톱 앱으로 옮겨가려는 분
 - <Badge variant="info" text="병용 전략가" /> 두 도구를 함께 쓰면서 강점만 골라 활용하고 싶은 분
 - <Badge variant="success" text="팀 리더" /> 팀 단위로 Codex 도입을 검토 중인 매니저·테크리드
 
@@ -75,13 +75,28 @@ import Badge from '../../components/learning/Badge.astro';
   { date: "2025-04-16", title: "Codex CLI 오픈소스 출시", description: "터미널 에이전트로 재탄생. github.com/openai/codex 오픈소스 공개. 단일 에이전트 워크플로 중심." },
   { date: "2025-05", title: "Codex 클라우드 에이전트 출시", description: "ChatGPT 내 백그라운드 SWE 에이전트로 추가. GitHub·Slack 통합 시작." },
   { date: "2026-02~03", title: "Codex 앱 출시와 Windows 확장", description: "2월 2일 macOS 출시 후 3월 4일 Windows 지원이 추가됨." },
-  { date: "2026-05", title: "본 가이드 작성 시점", description: "공식 Models 문서 기준 GPT-5.5 / GPT-5.4 / GPT-5.3-Codex 계열과 Agent Skills 문서가 정리됨." },
-  { date: "2026-07", title: "통합 ChatGPT 데스크톱 앱", description: "기존 Codex 앱이 Chat·Work·Codex를 한 앱에 제공하는 새 ChatGPT 데스크톱 앱으로 전환됨." },
+  { date: "2026", title: "ChatGPT 데스크톱 앱", description: "Chat·Work·Codex, 프로젝트, 파일, 브라우저와 예약 작업을 한 데스크톱 작업 공간에서 제공." },
+  { date: "2026-08", title: "현재 가이드 점검", description: "모델·플랜·기능 성숙도는 고정 표가 아니라 사용 중인 선택기와 공식 문서로 확인하도록 갱신." },
 ]} />
+
+## 전환을 보는 간단한 틀
+
+```text
+┌──────────────────────────────────────────┐
+│ Claude Code의 습관                        │
+│   │  지침 · 도구 · 권한을 분리해 점검    │
+│   ▼                                      │
+│ AGENTS.md ── Skills / Plugins ── MCP·승인 정책 │
+│   │                              │         │
+│   └──────── Codex 작업 흐름 ─────┘         │
+│                    │                     │
+│             검증 · 리뷰 · Git 기록        │
+└──────────────────────────────────────────┘
+```
 
 :::tip[가이드 사용법]
 순서대로 읽는 것을 권장하지만, 이미 익숙한 개념은 건너뛰어도 좋습니다.
 **[02. 한눈에 보는 비교](/learn-codex-from-claude-code/02-comparison/02-02-mapping-table/)** 의 매핑 표만 빠르게 훑고, 막힐 때 해당 섹션으로 돌아오는 것이 효율적입니다.
 :::
 
-최종 점검일: **2026-07-24**. 변경되는 항목은 각 챕터 하단의 참고 링크에서 최신 공식 문서를 확인하세요.
+최종 점검일: **2026-08-28**. 모델, 플랜, 베타 기능처럼 자주 바뀌는 항목은 각 챕터의 공식 참고 링크와 현재 제품 선택기를 함께 확인하세요.

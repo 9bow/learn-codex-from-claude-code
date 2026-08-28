@@ -22,7 +22,6 @@ references:
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
 import Compare from '../../../components/learning/Compare.astro';
 
-import Quiz from '../../../components/learning/Quiz';
 
 ## Codex를 MCP 서버로 노출
 
@@ -131,5 +130,3 @@ enabled = true
 - 반대로 Codex가 `config.toml`의 `[mcp_servers]` 로 외부 MCP 서버를 클라이언트로 호출할 수도 있습니다
 - 새 대화에는 `codex`, 후속 대화에는 반환된 `threadId`를 사용하는 `codex-reply` 도구를 사용합니다
 - `approval-policy`, `sandbox`, `cwd`를 명시하고 실행 결과와 테스트를 독립적으로 검토합니다
-
-<Quiz client:load section="09" />

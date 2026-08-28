@@ -21,7 +21,7 @@ export default defineConfig({
         },
       ],
       title: 'Claude Code → Codex 마이그레이션 가이드',
-      description: 'Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드 (GPT-5.5 시대)',
+      description: 'Claude Code 사용자를 위한 OpenAI Codex 학습 및 전환 가이드',
       defaultLocale: 'root',
       locales: {
         root: { label: '한국어', lang: 'ko' },
@@ -37,7 +37,7 @@ export default defineConfig({
         { label: '05. 핵심 기능 매핑', autogenerate: { directory: '05-feature-mapping' } },
         { label: '06. Skills 마이그레이션', autogenerate: { directory: '06-skills' } },
         { label: '07. 일상 워크플로우', autogenerate: { directory: '07-daily-workflow' } },
-        { label: '08. Codex Desktop App', autogenerate: { directory: '08-desktop-app' } },
+        { label: '08. ChatGPT Desktop App', autogenerate: { directory: '08-desktop-app' } },
         { label: '09. 고급 기능', autogenerate: { directory: '09-advanced' } },
         { label: '10. 실전 시나리오', autogenerate: { directory: '10-scenarios' } },
         { label: '11. 트러블슈팅 & 참고', autogenerate: { directory: '11-troubleshooting' } },

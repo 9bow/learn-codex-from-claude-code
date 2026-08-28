@@ -1,0 +1,59 @@
+---
+title: WebMCP — 사이트 도구와 MCP의 차이
+description: 웹사이트가 브라우저 안의 AI 에이전트에 도구를 제공하는 WebMCP와 서버 기반 MCP를 구분합니다.
+sidebar:
+  order: 7
+learning_objectives:
+  - "WebMCP와 Model Context Protocol(MCP)의 연결 방식 차이를 설명할 수 있다"
+  - "사이트 도구를 사용할 때 모델·표면·워크스페이스 가용성을 확인할 수 있다"
+  - "웹 도구와 외부 서비스 권한을 최소화하는 원칙을 적용할 수 있다"
+prerequisites:
+  - "05-03-mcp-migration"
+estimated_minutes: 25
+references:
+  - title: "Site tools (WebMCP)"
+    url: "https://learn.chatgpt.com/docs/webmcp"
+    accessed: "2026-08-28"
+  - title: "MCP and connectors"
+    url: "https://developers.openai.com/api/docs/guides/tools-connectors-mcp"
+    accessed: "2026-08-28"
+---
+
+import ConceptCard from '../../../components/learning/ConceptCard.astro';
+
+## WebMCP는 무엇이 다른가
+
+WebMCP는 웹사이트가 사람용 화면과 나란히 AI 에이전트가 쓸 수 있는 도구를 제공하는 방식입니다. ChatGPT 데스크톱 앱의 내장 브라우저에서 사이트가 지원하는 도구를 발견하고 사용할 수 있습니다. 사용자는 웹페이지와 로그인된 세션을 그대로 보면서 에이전트와 함께 작업합니다.
+
+MCP는 AI 애플리케이션이 로컬 또는 원격 서버에 연결해 도구와 데이터를 쓰는 프로토콜입니다. 반면 WebMCP는 방문한 사이트가 제공하는 도구를 브라우저에서 발견한다는 점이 다릅니다. 둘은 경쟁 관계가 아니라 연결 위치와 배포 방식이 다른 도구 경계입니다.
+
+```text
+MCP
+Codex ────── MCP 서버 ────── 서비스 API·데이터
+
+WebMCP
+Codex 내장 브라우저 ────── 방문한 웹사이트의 도구
+      └─ 같은 페이지 · 같은 로그인 세션을 함께 봄
+```
+
+## 사용 전 확인할 것
+
+WebMCP는 현재 페이지가 도구를 제공해야 하며, 모델·앱 버전·워크스페이스·기능 롤아웃에 따라 가용성이 달라질 수 있습니다. 공식 문서는 GPT-5.6 Sol 또는 GPT-5.6 Terra와 최신 ChatGPT 데스크톱 앱을 요구하고, Enterprise·Edu 워크스페이스에서는 지원하지 않는다고 안내합니다. 따라서 문서에 "항상 자동으로 사용 가능"이라고 쓰지 않습니다.
+
+| 확인 항목 | 질문 |
+| --- | --- |
+| 페이지 | 현재 방문한 사이트가 WebMCP 도구를 제공하는가? |
+| 모델·앱 | 지원 모델과 최신 데스크톱 앱을 사용 중인가? |
+| 권한 | 로그인 세션으로 어떤 데이터와 변경 권한을 얻게 되는가? |
+| 결과 | 도구 호출 뒤 사람이 검토할 화면·기록이 있는가? |
+
+<ConceptCard title="MCP를 대체하지 않는다">
+API로 조직 시스템을 지속적으로 연결하고 싶다면 MCP 서버와 인증·감사 설계가 더 적합할 수 있습니다. 특정 사이트에서 이미 로그인한 사용자가 화면을 보며 한 번의 작업을 끝내는 흐름이라면 WebMCP가 더 간단할 수 있습니다. 어떤 경우든 필요한 도구와 데이터만 노출합니다.
+</ConceptCard>
+
+## 핵심 정리
+
+- WebMCP는 방문한 웹사이트의 도구를 브라우저 안 에이전트가 발견해 쓰게 하는 방식입니다.
+- MCP는 별도 로컬·원격 서버에 연결하는 방식이며, WebMCP와 사용 목적이 다릅니다.
+- WebMCP의 가용성은 사이트, 모델, 앱, 워크스페이스 정책에 달려 있으므로 실행 전에 확인합니다.
+- 로그인 세션과 외부 변경 권한을 최소화하고 결과를 사람이 검토합니다.

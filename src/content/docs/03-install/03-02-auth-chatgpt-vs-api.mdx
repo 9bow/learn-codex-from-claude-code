@@ -1,124 +1,106 @@
 ---
 title: ChatGPT 인증 vs API 키 인증
-description: Codex의 두 가지 인증 방식과 모델별 지원 범위, 의사결정 기준을 설명합니다.
+description: Codex의 ChatGPT 로그인과 API 키 인증을 사용 목적·권한·과금 방식에 따라 구분합니다.
 sidebar:
   order: 2
 learning_objectives:
-  - "ChatGPT 인증과 API 키 인증의 차이를 설명할 수 있다"
-  - "사용 목적에 따라 적합한 인증 방식을 선택할 수 있다"
+  - "ChatGPT 로그인과 API 키 인증의 책임 범위를 설명할 수 있다"
+  - "로컬 개발, CI, 앱·Cloud 사용에 맞는 인증을 선택할 수 있다"
+  - "모델과 플러그인 가용성을 고정표가 아닌 현재 계정 상태로 확인할 수 있다"
 prerequisites:
-  - "Codex CLI 설치 완료"
+  - "03-01-cli-install"
 estimated_minutes: 25
 references:
-  - title: "Codex Authentication"
+  - title: "Codex authentication"
     url: "https://developers.openai.com/codex/auth"
-    accessed: "2026-05-01"
-  - title: "Codex CLI Features"
-    url: "https://developers.openai.com/codex/cli/features"
-    accessed: "2026-05-01"
-  - title: "Codex Models"
-    url: "https://developers.openai.com/codex/models"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
+  - title: "Codex CLI"
+    url: "https://learn.chatgpt.com/docs/codex/cli"
+    accessed: "2026-08-28"
+  - title: "Plugins"
+    url: "https://learn.chatgpt.com/docs/plugins"
+    accessed: "2026-08-28"
+  - title: "Codex cloud"
+    url: "https://learn.chatgpt.com/docs/cloud"
+    accessed: "2026-08-28"
 ---
 
 import Compare from '../../../components/learning/Compare.astro';
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
 
-Claude Code는 `ANTHROPIC_API_KEY` 환경 변수 하나로 인증이 끝났습니다. Codex는 **ChatGPT 계정 인증** 과 **API 키 인증** 두 가지 경로가 있으며, 어떤 인증을 사용하느냐에 따라 사용할 수 있는 모델과 기능이 달라집니다.
+Codex는 ChatGPT 계정으로 로그인하거나 OpenAI API 키로 인증할 수 있습니다. 둘은 단순히 로그인 화면이 다른 것이 아니라, 사용 한도·청구·조직 정책·일부 연결 기능의 가용성이 달라질 수 있는 경로입니다.
 
-## ChatGPT 인증
+## ChatGPT 계정으로 로그인
 
-ChatGPT 계정으로 로그인하는 방식입니다. CLI를 처음 실행하면 브라우저가 열리며 OAuth 흐름을 안내합니다.
+처음 `codex`를 실행하면 ChatGPT 로그인 또는 현재 환경에서 제공되는 다른 로그인 방식을 선택합니다. ChatGPT 플랜으로 Codex를 사용할 때는 계정의 사용 한도와 워크스페이스 정책이 적용됩니다.
 
 ```bash
 codex
-# 브라우저에서 ChatGPT 계정으로 로그인 → 토큰 자동 저장
 ```
 
-인증 토큰은 `~/.codex/` 디렉터리에 저장되며 이후 자동으로 사용됩니다.
+ChatGPT 데스크톱 앱, ChatGPT Work, 예약 작업처럼 ChatGPT 제품 표면과 연결된 기능을 쓸 때는 해당 제품의 로그인과 권한 정책을 확인합니다. 조직 계정에서는 관리자가 허용한 모델, 플러그인, 외부 연결만 보일 수 있습니다.
 
-:::tip[ChatGPT 인증이 필요한 경우]
-**Codex Cloud** 기능(백그라운드 클라우드 작업, GitHub/Slack 통합)은 ChatGPT 계정 인증이 필요합니다. 모델 사용 가능 범위는 계정 플랜, API 권한, 클라이언트 버전에 따라 달라질 수 있으므로 최신 모델 가이드를 함께 확인하세요.
-:::
+## API 키로 인증
 
-## API 키 인증
-
-OpenAI API 키를 환경 변수로 설정하는 방식입니다. Claude Code 사용자에게 익숙한 패턴입니다.
+API 키는 자동화, CI, SDK 기반 통합처럼 사용량을 API 프로젝트로 관리해야 하는 상황에 적합합니다. 키는 환경 변수나 CI의 secret store에 저장하고, 저장소나 문서에 직접 적지 않습니다.
 
 ```bash
-export OPENAI_API_KEY="sk-proj-..."
+export OPENAI_API_KEY="<your-api-key>"
 codex
 ```
 
-CLI에서는 `codex login --with-api-key` 로 API 키 로그인을 저장할 수 있습니다.
+CLI에서 지원하는 로그인 흐름과 키 저장 방식은 버전에 따라 달라질 수 있으므로 `codex login --help`로 확인합니다. CI에서는 사람이 쓰는 개인 토큰을 재사용하지 말고, 해당 프로젝트의 최소 권한 secret를 사용합니다.
 
-```bash
-printenv OPENAI_API_KEY | codex login --with-api-key
+```text
+개인 로컬 탐색 · ChatGPT 데스크톱 앱
+             │
+             ▼
+       ChatGPT 로그인 검토
+
+CI · SDK · 사용량을 API 프로젝트로 분리
+             │
+             ▼
+          API 키 인증 검토
 ```
 
-:::caution[API 키의 제약]
-API 키는 CLI, SDK, IDE 확장에서 사용하기 적합합니다. **Codex Cloud 기능은 API 키로 접근할 수 없습니다.** 팀 협업이나 GitHub 통합이 필요하다면 ChatGPT 인증을 사용하세요.
+## 무엇이 달라지는가
+
+| 판단 기준 | ChatGPT 로그인 | API 키 인증 |
+| --- | --- | --- |
+| 사용 한도·청구 | ChatGPT 플랜과 워크스페이스 정책 | API 프로젝트의 사용량·한도 |
+| 로컬 CLI·IDE | 지원 범위에서 사용 | 지원 범위에서 사용 |
+| CI와 비대화형 실행 | 조직 정책을 먼저 확인 | secret 기반 자동화에 적합 |
+| Cloud·플러그인·연결 기능 | 제품·플랜·관리자 정책에 따름 | 지원되는 기능과 OAuth 제약을 각각 확인 |
+| 모델 가용성 | 계정·플랜·클라이언트에 따름 | API 프로젝트 권한과 모델 정책에 따름 |
+
+:::caution[고정 기능표를 피한다]
+"이 인증이면 항상 이 모델/Cloud/플러그인을 쓸 수 있다"는 표는 유지하기 어렵습니다. 공식 Plugins 문서도 API 키 인증에서 일부 OpenAI-curated plugin을 지원하지만, OAuth가 필요한 plugin은 제한될 수 있다고 설명합니다. 기능을 도입하기 직전에 현재 제품 표면과 연결 요구 사항을 확인하세요.
 :::
 
-## 모델별 인증 지원 범위
-
-| 모델 | ChatGPT 인증 | API 키 | 비고 |
-|------|:------------:|:------:|------|
-| `gpt-5.5` | ✅ | 권한별 상이 | 최신 모델 가이드와 계정 권한 확인 |
-| `gpt-5.4` | ✅ | ✅ | 권장 폴백, agentic 작업 |
-| `gpt-5.4-mini` | ✅ | ✅ | 빠르고 저렴, 서브에이전트용 |
-| `gpt-5.3-codex` | ✅ | ✅ | 코딩 특화 |
-| `gpt-5.3-codex-spark` | ✅ (Pro only) | ❌ | ChatGPT Pro 전용 |
-| `gpt-5.2` | ✅ | ✅ | 이전 세대 |
+## Claude Code와 비교
 
 <Compare>
   <Fragment slot="left">
-  - 단일 인증: `ANTHROPIC_API_KEY`
-  - 모든 모델을 API 키로 사용 가능
-  - Claude Pro/Max/Team 플랜 구분
-
+  **Claude Code에서 흔한 경로**
+  - 환경 변수 또는 조직 로그인으로 인증
+  - CI secret과 개인 개발 환경을 분리
+  - 모델·플랜 가용성은 계정 정책 확인
   </Fragment>
   <Fragment slot="right">
-  - 두 가지 인증: ChatGPT 계정 또는 API 키
-  - Codex Cloud와 GitHub/Slack 통합은 ChatGPT 인증 필수
-  - 플랜에 따라 모델 접근 범위 상이
-
+  **Codex에서의 경로**
+  - ChatGPT 로그인 또는 API 키 인증
+  - ChatGPT 제품 기능과 API 자동화의 책임을 분리
+  - 연결 기능은 OAuth·plugin·workspace 정책까지 확인
   </Fragment>
 </Compare>
 
-## 기능별 인증 요구사항
-
-| 기능 | ChatGPT 인증 | API 키 |
-|------|:------------:|:------:|
-| CLI 기본 대화 | ✅ | ✅ |
-| IDE 확장 | ✅ | ✅ |
-| Desktop App | ✅ | ✅ |
-| Codex Cloud | ✅ | ❌ |
-| GitHub 통합 | ✅ | ❌ |
-| Slack 통합 | ✅ | ❌ |
-| 최신 모델 사용 | 플랜별 상이 | API 권한별 상이 |
-
-## 의사결정 트리
-
-```
-개인 개발자, 로컬 작업 위주?
-├─ API 키 사용량을 직접 관리하고 싶다 → API 키 인증
-└─ ChatGPT Plus/Pro 구독 중 → ChatGPT 인증
-
-팀/조직 환경?
-├─ GitHub/Slack 통합 필요 → ChatGPT 인증 (필수)
-├─ Codex Cloud 백그라운드 작업 → ChatGPT 인증 (필수)
-└─ CI/CD 자동화, 토큰 기반 청구 → API 키 인증
-```
-
-<ConceptCard title="두 인증을 동시에 사용할 수 있나요?">
-한 번에 하나의 인증 방식만 활성화됩니다. ChatGPT 인증 토큰이 있으면 API 키보다 우선됩니다. API 키만 사용하려면 ChatGPT 인증 토큰을 삭제하거나 `~/.codex/` 디렉터리를 초기화하세요.
+<ConceptCard title="안전한 인증 점검">
+API 키, 브라우저 로그인 토큰, CI secret는 모두 자격 증명입니다. 예제에는 실제 값을 넣지 않고, `.env` 파일은 커밋하지 않으며, 실행 로그에 키가 출력되지 않는지 확인합니다. 외부 서비스 연결은 필요한 범위만 승인합니다.
 </ConceptCard>
 
 ## 핵심 정리
 
-- Codex는 **ChatGPT 계정 인증** 과 **API 키 인증** 두 가지 방식을 지원합니다
-- Codex Cloud와 GitHub/Slack 통합은 ChatGPT 인증이 필요합니다
-- API 키 인증은 CLI, SDK, IDE 확장 중심의 로컬·자동화 작업에 적합하며 Cloud 기능에는 접근할 수 없습니다
-- 팀 협업, GitHub/Slack 통합이 필요하다면 반드시 ChatGPT 인증을 사용해야 합니다
-- CI/CD 환경처럼 토큰 기반 청구가 필요한 경우는 API 키가 적합합니다
+- ChatGPT 로그인과 API 키 인증은 사용 한도, 청구, 제품 기능의 경계가 다릅니다.
+- API 키는 CI·SDK·자동화에, ChatGPT 로그인은 ChatGPT 제품 표면을 쓰는 작업에 우선 검토합니다.
+- 모델, Cloud, plugin의 가용성을 인증 방식 하나로 단정하지 않고 현재 공식 문서와 계정 화면에서 확인합니다.
+- 자격 증명은 저장소·문서·로그에서 제외하고 최소 권한으로 관리합니다.

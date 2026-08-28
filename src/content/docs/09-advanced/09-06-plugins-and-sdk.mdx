@@ -14,16 +14,16 @@ estimated_minutes: 30
 references:
   - title: "Codex Plugins"
     url: "https://developers.openai.com/codex/plugins"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
   - title: "Build Codex Plugins"
     url: "https://developers.openai.com/codex/plugins/build"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
   - title: "Codex with the Agents SDK"
     url: "https://developers.openai.com/codex/guides/agents-sdk"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
   - title: "OpenAI Agents SDK"
     url: "https://developers.openai.com/api/docs/guides/agents"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
 ---
 
 import ConceptCard from '../../../components/learning/ConceptCard.astro';
@@ -35,6 +35,14 @@ import ConceptCard from '../../../components/learning/ConceptCard.astro';
 ## 플러그인 시스템
 
 Codex에서 **Skills** 는 재사용 가능한 작업 지침의 작성 형식이고, **plugins** 는 Skills, MCP 설정, app integration, lifecycle hooks 등을 묶어 설치·배포하는 단위입니다. 한 팀 안에서 반복 워크플로를 공유하려면 먼저 skill로 절차를 만들고, 여러 사람이 설치해야 할 시점에 plugin으로 패키징하는 흐름이 자연스럽습니다.
+
+```text
+┌──────────┐    묶어 배포     ┌──────────────────────────┐
+│ Skills   │─────────────────▶│ Plugin                   │
+│ 지침·참고 │                  │ skills · connectors · MCP │
+└──────────┘                  │ hooks · task templates    │
+                              └──────────────────────────┘
+```
 
 공식 문서 기준 plugin은 `.codex-plugin/plugin.json` manifest를 필수로 갖습니다. skill만 담는 최소 구조는 다음과 같습니다.
 
@@ -111,7 +119,7 @@ async with MCPServerStdio(
 
 ## GitHub 자동화는 어떻게 보나
 
-OpenAI 공식 Codex 문서에서 확인되는 경로는 GitHub Action 패키지(`openai/codex-action@v1`)가 아니라 **Codex Cloud와 GitHub 통합** 입니다. PR·이슈 기반 작업은 Cloud 환경을 연결한 뒤 `@codex` 위임이나 Cloud task로 처리하는 흐름을 우선 검토하세요.
+PR·이슈 기반 작업은 Codex Cloud와 GitHub 통합으로 처리할 수 있습니다. GitHub Actions에서 반복 점검을 실행해야 한다면 공식 `openai/codex-action@v1`도 사용할 수 있습니다. 이 경로는 Codex CLI와 `codex exec`를 workflow 안에서 실행하므로, API key secret·최소 권한·사람의 최종 검토가 필요합니다. 자세한 설정은 [09-07 Codex GitHub Action](/learn-codex-from-claude-code/09-advanced/09-07-github-action/)에서 다룹니다.
 
 ## 핵심 정리
 
@@ -119,4 +127,5 @@ OpenAI 공식 Codex 문서에서 확인되는 경로는 GitHub Action 패키지(
 - Plugin은 `.codex-plugin/plugin.json` manifest를 필수로 갖고, skills/MCP/apps/hooks를 함께 묶을 수 있습니다
 - Marketplace는 repo 또는 개인 범위의 plugin catalog이며 `codex plugin marketplace add|upgrade|remove`로 관리할 수 있습니다
 - SDK 기반 오케스트레이션은 Codex CLI를 MCP 서버로 노출하고 OpenAI Agents SDK에서 호출하는 방식이 공식 가이드에 정리되어 있습니다
-- 공식 문서에서 확인되지 않는 `openai/codex-action@v1`, `@openai/codex-sdk`, `Code Mode`, `JS REPL Runtime` 예시는 사용하지 않는 편이 안전합니다
+- `openai/codex-action@v1`은 GitHub Actions에서 Codex를 실행하는 공식 경로이며, 최소 권한과 사람 검토를 함께 설계합니다
+- 제공 표면과 빠르게 변하는 SDK·runtime 예시는 공식 문서로 확인한 뒤에만 사용합니다

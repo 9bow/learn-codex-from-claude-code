@@ -79,10 +79,10 @@ sandbox_mode = "read-only"
   </Fragment>
   <Fragment slot="right">
   **Codex 설정 공유**
-  - `~/.codex/config.toml` 글로벌 (CLI/IDE/App 공유)
+  - `$CODEX_HOME/config.toml` 사용자 수준 설정
   - `.codex/config.toml` 프로젝트 (trusted 시 로드)
-  - Profiles: `[profiles.<name>]` (CLI 전용, Experimental)
-  - Desktop App도 글로벌 config 읽음
+  - Profiles: `$CODEX_HOME/<name>.config.toml`을 CLI에서 선택
+  - 표면별 현재 세션 상태와 권한 확인
 
   </Fragment>
 </Compare>
@@ -133,19 +133,18 @@ codex resume abc123def456
 `codex resume --last` 는 가장 최근 세션을 즉시 이어받습니다. 매일 아침 어제 작업을 이어받을 때 가장 빠른 방법입니다.
 :::
 
-<ConceptCard title="Profiles로 인터페이스별 설정 분리 (Experimental)">
+<ConceptCard title="Profile 파일로 작업 설정 분리">
 
-CLI에서 `--profile` 플래그로 다른 설정 프로필을 사용할 수 있습니다. 다만 2026-05 기준 Experimental 상태이며 IDE 확장은 미지원입니다.
+CLI에서 `--profile` 플래그로 사용자 설정 위에 별도 profile 파일을 적용할 수 있습니다. 아래 두 설정은 **각각 별도 파일**입니다.
 
 ```toml
-# ~/.codex/config.toml
-[profiles.ci]
-model = "gpt-5.4-mini"
+# $CODEX_HOME/ci.config.toml
+model = "gpt-5.6-luna"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
 
-[profiles.review]
-model = "gpt-5.4"
+# $CODEX_HOME/review.config.toml
+model = "gpt-5.6-sol"
 approval_policy = "on-request"
 sandbox_mode = "read-only"
 ```
@@ -166,7 +165,7 @@ codex -p review "PR 변경 사항 검토해 줘"
 - **`~/.codex/sessions/`** 의 `history.jsonl` 에 모든 세션 기록이 저장됩니다
 - **`codex resume`** 으로 어느 인터페이스에서 시작한 세션이든 이어받을 수 있습니다
 - 프로젝트 전용 설정은 `.codex/config.toml` 에 저장하며, 신뢰된 프로젝트에서만 로드됩니다
-- **Profiles** 기능으로 CLI에서 인터페이스별 설정을 분리할 수 있습니다 (Experimental, IDE 미지원)
+- **Profile 파일**을 CLI의 `--profile`로 선택해 사용자 설정을 분리할 수 있습니다
 - `CODEX_HOME` 환경 변수로 설정 디렉토리를 변경해 복수 프로필을 관리할 수 있습니다
 
 <Quiz client:load section="08" />

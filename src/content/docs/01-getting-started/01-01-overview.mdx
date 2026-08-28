@@ -12,7 +12,7 @@ estimated_minutes: 20
 references:
   - title: "Codex CLI Overview"
     url: "https://developers.openai.com/codex/cli/features"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
   - title: "Claude Code Overview"
     url: "https://docs.claude.com/en/docs/claude-code/overview"
     accessed: "2026-05-01"
@@ -51,13 +51,13 @@ Codex 계정(OpenAI 계정 또는 API 키)은 [03-install](/learn-codex-from-cla
 |------|------|-----------|
 | 01 | 시작하기 | 가이드 소개, Codex 라인업, 진화 흐름, 첫인상, 마이그레이션 로드맵 |
 | 02 | 한눈에 보는 비교 | 철학 차이, 명령어/파일 대응 표, 1:1 매핑 가능/어려운 영역, UI 비교 |
-| 03 | 설치 | CLI, IDE 확장, Desktop App 설치 및 인증 |
+| 03 | 설치 | CLI, IDE 확장, ChatGPT 데스크톱 앱 설치 및 인증 |
 | 04 | 설정 마이그레이션 | `settings.json` → `config.toml`, CLAUDE.md → AGENTS.md 변환 |
 | 05 | 기능 매핑 | hooks, MCP, subagents, slash 커맨드 전환 |
 | 06 | Skills | Claude Code skills vs Agent Skills 표준 전환 |
 | 07 | 일상 워크플로 | 실제 작업 흐름 비교 및 전환 |
-| 08 | Desktop App | Desktop App 멀티 에이전트 활용법 |
-| 09 | 고급 | Codex Cloud, CI/CD, 원격 실행 |
+| 08 | ChatGPT 데스크톱 앱 | 프로젝트, worktree, 예약 작업 활용법 |
+| 09 | 고급 | Codex Cloud, CI/CD, WebMCP, 확장 기능 |
 | 10 | 시나리오 | 실전 마이그레이션 예제 |
 | 11 | 트러블슈팅 | 흔한 오류와 해결 방법 |
 
@@ -66,15 +66,15 @@ Codex 계정(OpenAI 계정 또는 API 키)은 [03-install](/learn-codex-from-cla
 ## 작성 시점 및 버전 기준
 
 :::caution[주의]
-이 가이드는 **2026년 5월 기준** 으로 작성되었습니다. Codex와 Claude Code는 빠르게 업데이트되는 제품이므로, 일부 내용이 현재 버전과 다를 수 있습니다. 항상 공식 문서를 병행해서 확인하세요.
+이 가이드는 **2026년 8월 28일** 에 핵심 기능과 공식 근거를 점검했습니다. Codex와 Claude Code는 빠르게 업데이트되는 제품이므로, 모델·플랜·베타 기능은 항상 공식 문서와 현재 제품 화면을 병행해서 확인하세요.
 :::
 
 | 도구 | 기준 버전/시점 |
 |------|---------------|
-| Claude Code | 2026-05, `claude-sonnet-4-6`, `claude-opus-4-6` |
-| Codex CLI | 2026-05, Rust 기반 오픈소스 (`github.com/openai/codex`) |
-| Codex Desktop App | 2026-03 macOS 출시, 2026-03-04 Windows 확장 이후 |
-| 모델 | `gpt-5.5` (최신), `gpt-5.4`, `gpt-5.3-codex` 등 |
+| Claude Code | 현재 계정·조직이 제공하는 모델과 기능을 확인 |
+| Codex CLI | Rust 기반 오픈소스 (`github.com/openai/codex`) |
+| ChatGPT desktop app | Chat, Work, Codex를 제공하는 데스크톱 작업 공간 |
+| 모델 | 현재 `/model` 선택기와 공식 모델 문서에서 확인 |
 
 <ConceptCard title="이 가이드에서 사용하는 표기 규칙">
 - `코드체` : 터미널 명령어, 파일명, 설정 키
@@ -89,5 +89,5 @@ Codex 계정(OpenAI 계정 또는 API 키)은 [03-install](/learn-codex-from-cla
 - 이 가이드는 **Claude Code 경험자** 가 Codex로 전환하는 최단 경로를 제공합니다
 - 터미널, Git, 기본 프로그래밍 환경이 전제 조건입니다
 - 총 **11개 섹션** 으로 구성되며, 섹션별로 독립적으로 읽을 수 있습니다
-- 모든 내용은 **2026년 5월 기준** 이며, 공식 문서 병행 확인을 권장합니다
+- 핵심 내용은 **2026년 8월 28일** 점검했으며, 모델·플랜·베타 기능은 공식 문서 병행 확인을 권장합니다
 - 빠른 전환을 원한다면 섹션 01 → 02 → 03 순서로 시작하세요

@@ -1,120 +1,100 @@
 ---
-title: 모델 선택과 추론 효율
-description: Claude Code의 모델/effort 체계와 Codex의 모델 라인업 및 model_reasoning_effort를 비교합니다.
+title: 모델 선택과 추론 수준
+description: Codex에서 현재 가용한 모델과 추론 수준을 작업·계정·위험도에 맞게 선택하는 방법을 설명합니다.
 sidebar:
   order: 1
 learning_objectives:
-  - "Claude Code와 Codex의 모델 라인업 차이를 설명할 수 있다"
-  - "model_reasoning_effort 옵션으로 속도와 품질을 조정할 수 있다"
+  - "고정 모델 대응표가 전환 판단에 부정확한 이유를 설명할 수 있다"
+  - "현재 모델 선택기와 세션 설정으로 가용성을 확인할 수 있다"
+  - "작업 난이도에 맞게 추론 수준을 선택할 수 있다"
 prerequisites:
-  - "Claude Code 기본 사용 경험"
-estimated_minutes: 20
+  - "01-02-codex-lineup"
+estimated_minutes: 25
 references:
-  - title: "Codex Models"
-    url: "https://developers.openai.com/codex/models"
-    accessed: "2026-05-01"
-  - title: "Codex CLI Reference"
-    url: "https://developers.openai.com/codex/cli/reference"
-    accessed: "2026-05-01"
-  - title: "Codex Pricing"
+  - title: "Codex CLI"
+    url: "https://learn.chatgpt.com/docs/codex/cli"
+    accessed: "2026-08-28"
+  - title: "Model selection"
+    url: "https://developers.openai.com/api/docs/guides/model-selection"
+    accessed: "2026-08-28"
+  - title: "Codex pricing"
     url: "https://developers.openai.com/codex/pricing"
-    accessed: "2026-05-01"
+    accessed: "2026-08-28"
 ---
 
 import Compare from '../../../components/learning/Compare.astro';
 
-## Claude Code의 모델 체계
+## 먼저 현재 가용성을 확인한다
 
-Claude Code는 Anthropic의 세 가지 모델 계층을 제공합니다. 대화 중 `/model` 슬래시 커맨드로 전환하거나, `/effort` 로 추론 깊이를 조정할 수 있습니다.
+Claude Code에서 넘어올 때 `opus = 고성능`, `sonnet = 균형`, `haiku = 경량`처럼 모델을 단순 대응시키고 싶을 수 있습니다. 그러나 Codex의 모델명, 제공 표면, 사용 한도는 계정·플랜·API 프로젝트·클라이언트 버전에 따라 바뀝니다. 한 번 만든 고정 대응표는 빠르게 낡습니다.
 
-| 모델 | 특징 | 적합한 용도 |
-|------|------|-------------|
-| `claude-opus-4-6` | 최고 성능, 느림 | 복잡한 설계, 심층 분석 |
-| `claude-sonnet-4-6` | 균형, 기본값 | 일반 코딩, 리팩터링 |
-| `claude-haiku-4-5` | 빠르고 저렴 | 빠른 수정, 서브에이전트 |
+Codex CLI에서는 `/model`로 현재 세션에서 선택할 수 있는 모델과 추론 수준을 확인합니다. 명령줄에서는 `codex --help`와 현재 세션 상태를 함께 확인합니다. 2026-08-28의 공식 CLI 예시는 `gpt-5.6-sol`을 보여 주지만, 이것이 모든 계정에서 같은 기본값이라는 뜻은 아닙니다.
 
-`/effort` 커맨드는 `low / medium / high` 세 단계로 추론 깊이를 조절합니다. 예를 들어 `/effort low` 는 빠른 응답이 필요한 단순 작업에 사용합니다.
+```text
+작업 난이도 · 허용 시간 · 비용/사용 한도
+                    │
+                    ▼
+       현재 계정의 모델 선택기에서 후보 확인
+                    │
+        ┌───────────┴───────────┐
+        ▼                       ▼
+  짧고 반복적인 작업       설계·리뷰·복잡한 디버깅
+  낮은 추론 수준부터        충분한 추론 수준과 검증
+```
 
-## Codex의 모델 라인업
+## 추론 수준(reasoning effort)
 
-Codex는 GPT-5 계열 모델을 사용합니다. Claude Code보다 더 세분화된 라인업을 제공하며, 일부 모델은 특정 플랜에서만 사용할 수 있습니다.
-
-| 모델 | 플래그 | 특징 | 비고 |
-|------|--------|------|------|
-| `gpt-5.5` | `-m gpt-5.5` | 복잡한 코딩, computer use, 지식 작업, 리서치에 권장 | 최신 모델 가이드와 계정 권한 확인 |
-| `gpt-5.4` | `-m gpt-5.4` | 강한 reasoning, tool use, agentic workflow | API 키 지원 |
-| `gpt-5.4-mini` | `-m gpt-5.4-mini` | 빠르고 효율적인 경량 코딩 모델 | API 키 지원, routine 작업·subagent에 적합 |
-| `gpt-5.3-codex` | `-m gpt-5.3-codex` | 복잡한 소프트웨어 엔지니어링용 코딩 모델 | Codex Cloud에서도 사용 |
-| `gpt-5.3-codex-spark` | `-m gpt-5.3-codex-spark` | near-instant coding iteration 연구 프리뷰 | ChatGPT Pro 사용자용, API 미지원 |
-| `gpt-5.2` | `-m gpt-5.2` | 이전 범용 모델 | 대체 모델 |
-
-:::note[참고]
-`gpt-5.5` 는 2026-05 기준 권장 기본 모델입니다. 단, 모델별 사용 가능 범위는 ChatGPT 플랜, API 프로젝트 권한, 클라이언트 버전에 따라 달라질 수 있으므로 실행 전 공식 모델 가이드를 확인하세요.
-:::
-
-## model_reasoning_effort 설정
-
-Codex에서 추론 효율은 `model_reasoning_effort` 설정으로 조정합니다. Claude Code의 `/effort` 커맨드와 동일한 역할이지만, 설정 파일에 영구 기록하거나 CLI 플래그로 실행 시점에 지정하는 방식입니다.
+Codex는 모델이 지원하는 범위 안에서 추론 수준을 선택할 수 있습니다. 낮은 수준은 짧은 수정이나 반복 작업에, 높은 수준은 복잡한 설계·리뷰·원인 분석에 적합할 수 있습니다. 단, 수준이 높다고 항상 더 좋은 결과가 나는 것은 아닙니다. 명확한 범위와 테스트가 없는 작업에서는 추론 시간만 늘고 결과 확인은 여전히 어려울 수 있습니다.
 
 ```toml
-# ~/.codex/config.toml
-model = "gpt-5.4"
-model_reasoning_effort = "medium"   # minimal | low | medium | high | xhigh
+# 사용자 설정의 예시
+model_reasoning_effort = "medium"
 ```
-
-또는 실행 시 직접 지정:
 
 ```bash
-codex --model gpt-5.4 -c model_reasoning_effort='"high"' "이 함수를 리팩터링해줘"
+# 현재 선택 가능한 값은 /model에서 확인한 뒤 사용합니다.
+codex --model gpt-5.6-sol -c model_reasoning_effort='"high"' \
+  "변경 범위와 테스트 기준을 지키며 이 모듈을 검토해줘"
 ```
 
-| 값 | 특징 |
-|----|------|
-| `minimal` | 매우 낮은 latency가 중요한 단순 작업 |
-| `low` | 빠른 응답, 단순 작업 |
-| `medium` | 기본값, 균형 |
-| `high` | 심층 추론, 복잡한 설계 |
-| `xhigh` | 모델이 지원하는 경우 가장 깊은 추론 |
+| 작업 | 출발점 | 반드시 함께 할 일 |
+| --- | --- | --- |
+| 파일 한두 개의 명확한 수정 | 낮음 또는 중간 | 테스트·린트 실행 |
+| 낯선 코드 탐색 | 중간 | 읽을 범위와 산출물 지정 |
+| 보안·설계 리뷰 | 중간 또는 높음 | diff 범위와 리뷰 기준 지정 |
+| 병렬 하위 작업 | 작업별로 별도 선택 | 비용과 결과 합치기 계획 수립 |
 
-## 나란히 비교
+## Claude Code와 비교할 때의 주의점
 
 <Compare>
   <Fragment slot="left">
-  - 모델: `opus` / `sonnet` / `haiku`
-  - 슬래시: `/model`, `/effort`
-  - 추론 깊이: `/effort low|medium|high`
-  - 전환 방식: 대화 중 슬래시 커맨드
-
+  **Claude Code**
+  - 모델 계열과 플랜이 Anthropic 정책에 따라 제공
+  - 대화에서 모델과 effort를 선택
+  - 모델명보다 작업 목적과 컨텍스트가 결과에 큰 영향
   </Fragment>
   <Fragment slot="right">
-  - 모델: `gpt-5.5` / `gpt-5.4` / `gpt-5.4-mini` / `gpt-5.3-codex` / `gpt-5.3-codex-spark` / `gpt-5.2`
-  - 슬래시: `/model`
-  - 추론 깊이: `model_reasoning_effort = "minimal|low|medium|high|xhigh"`
-  - 전환 방식: config.toml 또는 CLI 플래그
-
+  **Codex**
+  - 모델·추론 수준·권한을 현재 선택기에서 확인
+  - CLI, IDE, 앱, Cloud에서 가용 범위가 다를 수 있음
+  - 재현 가능한 결과는 모델명보다 범위·검증·승인 정책에 의존
   </Fragment>
 </Compare>
 
-:::tip[팁]
-서브에이전트처럼 반복 호출이 많은 곳에서는 `gpt-5.4-mini` + `model_reasoning_effort = "low"` 조합으로 더 빠르고 가벼운 실행을 기대할 수 있습니다. Claude Code의 `haiku` + `/effort low` 조합에 대응하는 선택지로 생각하면 됩니다.
-:::
+## 모델보다 먼저 고정할 것
 
-## 오픈소스 모델 사용
+팀 운영에서 중요한 것은 "항상 어떤 모델을 쓸지"보다 다음을 재현 가능하게 만드는 일입니다.
 
-Codex CLI는 `--oss` 플래그로 Ollama나 LM Studio 같은 로컬 모델도 사용할 수 있습니다. Claude Code에는 없는 기능입니다.
+1. `AGENTS.md`에 테스트·리뷰·보안 제약을 적습니다.
+2. 작업 요청에 파일 범위와 완료 기준을 넣습니다.
+3. 모델 또는 추론 수준을 바꿨을 때 같은 검증 명령으로 결과를 비교합니다.
+4. 플랜과 모델 가용성이 바뀌면 문서의 모델명 표를 갱신하기보다 공식 문서와 선택기로 확인합니다.
 
-```bash
-codex --oss "로컬 모델로 코드 검토해줘"
-```
-
-AWS를 사용하는 팀은 `model_provider = "amazon-bedrock"` 을 config.toml에 추가하여 Bedrock을 통해 모델을 호출할 수 있습니다.
+로컬 open-source provider를 검토할 때는 `--oss`처럼 별도 경로가 있다는 점도 구분합니다. 이는 ChatGPT 인증 모델과 같은 품질·권한·도구 가용성을 보장하는 대체 경로가 아닙니다.
 
 ## 핵심 정리
 
-- Claude Code의 `opus/sonnet/haiku` 는 Codex의 `gpt-5.5/gpt-5.4/gpt-5.4-mini` 에 대략 대응합니다
-- **추론 효율** 조정은 Codex에서 `model_reasoning_effort` 설정을 사용합니다
-- `gpt-5.5` 는 공식 Models 문서 기준 Codex의 권장 최신 모델이며 API 키 인증은 지원하지 않습니다
-- `gpt-5.5` 는 ChatGPT 인증 사용자 전용이며, API 키 사용자에게는 `gpt-5.4` 를 권장합니다
-- `gpt-5.4-mini` 는 빠르고 효율적인 경량 코딩 모델로 routine 작업과 subagent에 적합합니다
-- `gpt-5.3-codex-spark` 는 Pro 플랜 전용으로, 빠른 반복 작업에 특화되어 있습니다
-- Codex CLI는 `--oss` 플래그로 로컬 모델(Ollama, LM Studio)도 지원합니다
+- Claude와 Codex의 모델을 1:1로 고정 대응시키지 않습니다.
+- `/model`과 현재 세션 설정으로 실제 가용 모델·추론 수준을 확인합니다.
+- 추론 수준은 작업 난이도와 검증 가능성에 맞춰 선택합니다.
+- 팀 품질은 모델명보다 명확한 지침, 좁은 범위, 반복 가능한 검증에서 나옵니다.
